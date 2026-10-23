@@ -51,3 +51,13 @@ button {
 .tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/* 메인 운영 숫자 띠 (모바일 롤링): 카드 목록 두 벌 중 한 벌 길이(절반)만큼 이동 */
+@keyframes stats-roll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
