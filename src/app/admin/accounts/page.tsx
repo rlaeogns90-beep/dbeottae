@@ -2,6 +2,7 @@
 
 import { ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { ResetPasswordButton } from "@/components/password";
 import { useAdmin } from "@/components/shells";
 import { Badge, Button, Card, CardHeader, ConfirmButton, Empty, Field, Input, Notice, PageHeader } from "@/components/ui";
 import { formatPhone, fullDate } from "@/lib/format";
@@ -37,7 +38,7 @@ export default function AccountsPage() {
           <Field label="이름"><Input id="pt-name" value={p.name} onChange={(e) => setP({ ...p, name: e.target.value })} /></Field>
           <Field label="연락처"><Input id="pt-phone" inputMode="numeric" value={p.phone} onChange={(e) => setP({ ...p, phone: formatPhone(e.target.value) })} /></Field>
           <Field label="아이디 (추천인 아이디)"><Input id="pt-id" value={p.loginId} onChange={(e) => setP({ ...p, loginId: e.target.value.replace(/[^a-zA-Z0-9]/g, "") })} /></Field>
-          <Field label="비밀번호"><Input id="pt-pw" type="password" value={p.password} onChange={(e) => setP({ ...p, password: e.target.value })} /></Field>
+          <Field label="비밀번호 (8자 이상)"><Input id="pt-pw" type="password" value={p.password} onChange={(e) => setP({ ...p, password: e.target.value })} /></Field>
           <div className="flex items-center justify-between gap-3 sm:col-span-2">
             <span className="text-[13px] text-bad">{pError}</span>
             <Button type="submit">영업자 계정 만들기</Button>
@@ -50,7 +51,10 @@ export default function AccountsPage() {
                 <p className="text-sm font-semibold">{x.name} <Badge>{x.code}</Badge></p>
                 <p className="text-xs text-mute">{x.loginId} · {x.phone} · {fullDate(x.createdAt)} 생성</p>
               </div>
-              {x.status === "suspended" && <Badge tone="red">정지</Badge>}
+              <div className="flex items-center gap-2">
+                {x.status === "suspended" && <Badge tone="red">정지</Badge>}
+                <ResetPasswordButton kind="partner" id={x.id} name={x.name} />
+              </div>
             </li>
           ))}
         </ul>
@@ -71,7 +75,7 @@ export default function AccountsPage() {
         >
           <Field label="이름"><Input id="ad-name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} /></Field>
           <Field label="아이디"><Input id="ad-id" value={f.loginId} onChange={(e) => setF({ ...f, loginId: e.target.value })} /></Field>
-          <Field label="비밀번호"><Input id="ad-pw" type="password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></Field>
+          <Field label="비밀번호 (8자 이상)"><Input id="ad-pw" type="password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} /></Field>
           <Button type="submit" className="h-11">만들기</Button>
         </form>
         {error && <p className="px-5 pb-4 text-[13px] text-bad">{error}</p>}
@@ -85,7 +89,10 @@ export default function AccountsPage() {
                 </p>
                 <p className="text-xs text-mute">{a.loginId} · {fullDate(a.createdAt)} 생성</p>
               </div>
-              {!a.master && <ConfirmButton variant="danger" size="sm" confirmLabel="한 번 더 누르면 삭제" onConfirm={() => deleteAdmin(a.id)}>삭제</ConfirmButton>}
+              <div className="flex items-center gap-2">
+                {a.id !== me.id && <ResetPasswordButton kind="admin" id={a.id} name={a.name} />}
+                {!a.master && <ConfirmButton variant="danger" size="sm" confirmLabel="한 번 더 누르면 삭제" onConfirm={() => deleteAdmin(a.id)}>삭제</ConfirmButton>}
+              </div>
             </li>
           ))}
         </ul>

@@ -3,6 +3,7 @@
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { ResetPasswordButton } from "@/components/password";
 import { Badge, Button, Card, Empty, Field, Input, Modal, PageHeader, Table, Toggle, td, th } from "@/components/ui";
 import { balanceOf, groupNo, groupOf, todayCount } from "@/lib/engine";
 import { won } from "@/lib/format";
@@ -83,6 +84,11 @@ function EditModal({ adv, onClose }: { adv: Advertiser; onClose: () => void }) {
           ) : (
             <Button variant="danger" size="sm" onClick={() => setMemberStatus("advertiser", adv.id, "suspended")}>이용 정지</Button>
           )}
+        </section>
+
+        <section className="flex items-center justify-between rounded-lg bg-page px-4 py-3 text-sm">
+          <span className="text-sub">로그인 비밀번호 (아이디 {adv.loginId})</span>
+          <ResetPasswordButton kind="advertiser" id={adv.id} name={adv.name} />
         </section>
       </div>
     </Modal>

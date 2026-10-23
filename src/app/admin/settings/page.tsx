@@ -1,12 +1,18 @@
 "use client";
 
-import { Card, CardHeader, ConfirmButton, Notice, PageHeader, Toggle } from "@/components/ui";
+import { useState } from "react";
+import { MyPasswordCard } from "@/components/password";
+import { Button, Card, CardHeader, ConfirmButton, Field, Input, Notice, PageHeader, Toggle } from "@/components/ui";
 import { won } from "@/lib/format";
 import { useStore } from "@/lib/store";
 
 export default function SettingsPage() {
   const { state, updateSettings, resetDemo } = useStore();
   const s = state.settings;
+  const [bank, setBank] = useState(s.bankAccount);
+  const [bankSaved, setBankSaved] = useState(false);
+  // 운영 사이트(Vercel production)에서는 예시 데이터 초기화를 보여주지 않는다.
+  const isProduction = process.env.NEXT_PUBLIC_VERCEL_ENV === "production";
 
   const Row = ({ title, desc, children }: { title: string; desc: string; children: React.ReactNode }) => (
     <div className="flex items-center justify-between gap-4 px-5 py-4">
@@ -45,16 +51,39 @@ export default function SettingsPage() {
           <Row title="OFF 후 재개 대기" desc="광고주가 직접 끈 뒤 다시 켤 수 있을 때까지"><Value>{s.offLockHours}시간</Value></Row>
           <Row title="불량 신청 기한" desc="DB 배정 후 이 시간 안에만 신청 가능"><Value>{s.defectHours}시간</Value></Row>
           <Row title="영업자 수익" desc="추천 광고주의 DB 1건당, 불량 환원 건 제외"><Value>{won(s.incentivePerDb)}</Value></Row>
-          <Row title="입금 계좌" desc="광고주 충전 화면에 표시"><Value>{s.bankAccount.bank} {s.bankAccount.number}</Value></Row>
-        </div>
+                  </div>
       </Card>
 
-      <Notice tone="orange">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <span>프로토타입 데이터를 처음 상태로 되돌립니다. 실제 운영 버전에는 없는 기능입니다.</span>
-          <ConfirmButton variant="secondary" size="sm" confirmLabel="한 번 더 누르면 초기화" onConfirm={resetDemo}>예시 데이터 초기화</ConfirmButton>
-        </div>
-      </Notice>
+      <Card>
+        <CardHeader title="입금 계좌" desc="광고주 예치금 충전 화면에 그대로 보입니다" />
+        <form
+          className="grid gap-3 p-5 sm:grid-cols-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            updateSettings({ bankAccount: { bank: bank.bank.trim(), number: bank.number.trim(), holder: bank.holder.trim() } });
+            setBankSaved(true);
+            setTimeout(() => setBankSaved(false), 1500);
+          }}
+        >
+          <Field label="은행"><Input value={bank.bank} onChange={(e) => setBank({ ...bank, bank: e.target.value })} placeholder="신한은행" /></Field>
+          <Field label="계좌번호"><Input value={bank.number} onChange={(e) => setBank({ ...bank, number: e.target.value })} /></Field>
+          <Field label="예금주"><Input value={bank.holder} onChange={(e) => setBank({ ...bank, holder: e.target.value })} /></Field>
+          <div className="flex justify-end sm:col-span-3">
+            <Button type="submit" disabled={!bank.bank || !bank.number || !bank.holder}>{bankSaved ? "저장됨" : "계좌 저장"}</Button>
+          </div>
+        </form>
+      </Card>
+
+      <MyPasswordCard />
+
+      {!isProduction && (
+        <Notice tone="orange">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span>시험용 데이터를 처음 상태로 되돌립니다. 운영 사이트에는 나타나지 않습니다.</span>
+            <ConfirmButton variant="secondary" size="sm" confirmLabel="한 번 더 누르면 초기화" onConfirm={resetDemo}>예시 데이터 초기화</ConfirmButton>
+          </div>
+        </Notice>
+      )}
     </div>
   );
 }

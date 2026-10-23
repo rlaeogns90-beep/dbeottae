@@ -28,6 +28,7 @@ export default function SignupPage() {
     e.preventDefault();
     const need: [boolean, string][] = [
       [!f.loginId || !f.password, "아이디와 비밀번호를 입력해 주세요."],
+      [f.password.length < 8, "비밀번호는 8자 이상이어야 합니다."],
       [f.password !== f.password2, "비밀번호가 서로 다릅니다."],
       [!f.name, "이름을 입력해 주세요."],
       [f.phone.replace(/\D/g, "").length < 10, "DB를 받을 연락처를 정확히 입력해 주세요."],
@@ -78,7 +79,7 @@ export default function SignupPage() {
             <h2 className="text-[15px] font-bold">계정</h2>
             <Field label="아이디" required><Input value={f.loginId} onChange={set("loginId")} autoComplete="username" /></Field>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="비밀번호" required><Input type="password" value={f.password} onChange={set("password")} autoComplete="new-password" /></Field>
+              <Field label="비밀번호 (8자 이상)" required><Input type="password" value={f.password} onChange={set("password")} autoComplete="new-password" /></Field>
               <Field label="비밀번호 확인" required><Input type="password" value={f.password2} onChange={set("password2")} autoComplete="new-password" /></Field>
             </div>
           </section>

@@ -1,5 +1,6 @@
 "use client";
 
+import { MyPasswordCard } from "@/components/password";
 import { useAdvertiser } from "@/components/shells";
 import { Card, CardHeader, Notice, PageHeader } from "@/components/ui";
 import { fullDate } from "@/lib/format";
@@ -39,6 +40,7 @@ export default function MePage() {
       <Notice>정보 변경은 관리자만 할 수 있습니다. 1600-7628 또는 카카오톡 채널 &lsquo;마케팅을다루다&rsquo;로 요청해 주세요.</Notice>
       <Section title="기본 정보" rows={basic} />
       <Section title="증빙 정보" rows={receipt} />
+      <MyPasswordCard />
     </div>
   );
 }

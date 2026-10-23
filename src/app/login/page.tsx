@@ -14,6 +14,8 @@ import type { Session } from "@/lib/types";
 
 const home: Record<Session["role"], string> = { advertiser: "/app", partner: "/partner", admin: "/admin" };
 
+// 체험 계정 버튼은 시험용 사이트(로컬·미리보기)에서만 보인다. 운영 DB에는 이 계정들이 없다.
+const showDemo = process.env.NEXT_PUBLIC_VERCEL_ENV !== "production";
 const demo: [string, string][] = [
   ["kim01", "광고주 · 수신 ON"],
   ["choi04", "광고주 · 잔액 소진"],
@@ -213,16 +215,18 @@ export default function MainPage() {
 
           <LiveFeed />
 
-          <Notice>
-            <p className="mb-2 font-semibold text-ink">프로토타입 체험 계정 (비밀번호 1234)</p>
-            <div className="flex flex-wrap gap-1.5">
-              {demo.map(([loginId, label]) => (
-                <button key={loginId} onClick={() => submit(loginId, "1234")} className="rounded-md border border-line bg-white px-2.5 py-1 text-xs font-medium text-sub hover:border-brand hover:text-brand">
-                  {label}
-                </button>
-              ))}
-            </div>
-          </Notice>
+          {showDemo && (
+            <Notice>
+              <p className="mb-2 font-semibold text-ink">시험용 체험 계정 (운영 사이트에는 보이지 않음)</p>
+              <div className="flex flex-wrap gap-1.5">
+                {demo.map(([loginId, label]) => (
+                  <button key={loginId} onClick={() => submit(loginId, "1234")} className="rounded-md border border-line bg-white px-2.5 py-1 text-xs font-medium text-sub hover:border-brand hover:text-brand">
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </Notice>
+          )}
         </div>
       </section>
 

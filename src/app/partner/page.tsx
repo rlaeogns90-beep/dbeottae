@@ -1,5 +1,6 @@
 "use client";
 
+import { MyPasswordCard } from "@/components/password";
 import { Copy } from "lucide-react";
 import { useState } from "react";
 import { usePartner } from "@/components/shells";
@@ -110,6 +111,8 @@ export default function PartnerHome() {
           </ul>
         )}
       </Card>
+
+      <MyPasswordCard />
     </div>
   );
 }

@@ -1,8 +1,9 @@
-// 예시 데이터 초기화 (마스터 관리자만)
+// 예시 데이터 초기화 (시험용 DB에서만, 마스터 관리자만)
 import { readToken } from "@/lib/server/auth";
-import { freshSeed, loadState, saveState } from "@/lib/server/db";
+import { freshSeed, isProduction, loadState, saveState } from "@/lib/server/db";
 
 export async function POST(req: Request) {
+  if (isProduction) return Response.json({ error: "운영 사이트에서는 초기화할 수 없습니다." }, { status: 403 });
   const who = readToken(req);
   const { rev, data } = await loadState();
   if (who?.role !== "admin" || !data.admins.find((a) => a.id === who.id)?.master)
