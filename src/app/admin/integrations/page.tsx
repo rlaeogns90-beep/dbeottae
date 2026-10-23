@@ -90,7 +90,7 @@ export default function IntegrationsPage() {
 
       <Card>
         <CardHeader title="개발자용 연동 방법" desc="외부 접수 페이지와 외부 어드민 개발자에게 전달하세요" />
-        <div className="grid gap-4 p-5 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 p-5 lg:grid-cols-2">
           <div>
             <p className="mb-2 text-[13px] font-semibold text-sub">DB 접수 (외부 접수 페이지 → DB어때)</p>
             <pre className="overflow-x-auto rounded-lg bg-[#1f2329] p-4 text-xs leading-relaxed text-[#e6e8eb]">{leadSample}</pre>

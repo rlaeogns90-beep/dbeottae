@@ -71,8 +71,8 @@ function PhoneMock() {
     </div>
   );
   return (
-    <div className="w-[320px] max-w-full rounded-[44px] bg-ink p-3.5 shadow-[0_24px_60px_rgba(25,31,40,0.18)]">
-      <div className="flex min-h-[500px] flex-col gap-3 rounded-[32px] bg-soft px-4 pt-7 pb-9">
+    <div className="w-[300px] max-w-full rounded-[40px] bg-ink p-3 sm:w-[320px] sm:rounded-[44px] sm:p-3.5 shadow-[0_24px_60px_rgba(25,31,40,0.18)]">
+      <div className="flex flex-col gap-3 rounded-[30px] sm:min-h-[500px] sm:rounded-[32px] bg-soft px-4 pt-7 pb-9">
         <span className="self-center text-xs font-bold text-[#6b7684]">알림톡 화면 예시</span>
         <Card time="방금" strong>
           <b className="text-[15px]">새 고객 DB가 도착했습니다</b>
@@ -111,9 +111,9 @@ export default function MainPage() {
   return (
     <div className="min-h-screen bg-white">
       <header className="sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur">
-        <div className="mx-auto flex min-h-[68px] max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:h-[68px] sm:px-6">
           <div className="flex items-center gap-9">
-            <Logo size={24} />
+            <Logo size={22} />
             <nav className="hidden gap-6 text-[15px] font-medium text-sub md:flex">
               <a href="#compare" onClick={scrollTo("compare")} className="hover:text-ink">다른 점</a>
               <a href="#flow" onClick={scrollTo("flow")} className="hover:text-ink">배정 방식</a>
@@ -121,60 +121,70 @@ export default function MainPage() {
               <a href="#faq" onClick={scrollTo("faq")} className="hover:text-ink">자주 묻는 질문</a>
             </nav>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <div className="hidden gap-2 sm:flex">
               <CallButton />
               <KakaoButton />
             </div>
-            <a href={`tel:${COMPANY.tel.replace(/-/g, "")}`} aria-label={`고객센터 ${COMPANY.tel} 전화 걸기`} className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#d1d6db] sm:hidden">
+            <a href={`tel:${COMPANY.tel.replace(/-/g, "")}`} aria-label={`고객센터 ${COMPANY.tel} 전화 걸기`} className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#d1d6db] sm:hidden">
               <Phone size={17} className="text-brand" strokeWidth={2.4} />
             </a>
-            <a href={COMPANY.kakaoUrl} aria-label="카카오톡 상담" className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#FEE500] sm:hidden">
+            <a href={COMPANY.kakaoUrl} aria-label="카카오톡 상담" className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#FEE500] sm:hidden">
               <KakaoIcon size={20} />
             </a>
-            <Link href="/signup" className="inline-flex h-10 items-center rounded-lg bg-ink px-3.5 text-sm font-bold text-white hover:bg-[#333d4b] sm:px-4">
+            <Link href="/signup" className="inline-flex h-9 items-center rounded-lg bg-ink px-3 text-sm font-bold text-white hover:bg-[#333d4b] sm:h-10 sm:px-4">
               가입 신청
             </Link>
           </div>
         </div>
       </header>
 
-      <section className="mx-auto flex max-w-6xl flex-wrap items-start gap-14 px-4 pt-16 pb-20 sm:px-6">
-        <div className="flex min-w-0 flex-[1_1_520px] flex-col gap-7">
-          <span className="self-start rounded-full bg-brand-soft px-3 py-1.5 text-sm font-bold text-brand-dark">자동차 단독 DB · 건당 CPA</span>
-          <h1 className="text-[40px] leading-[1.22] font-extrabold tracking-[-0.03em] text-balance sm:text-[56px]">
+      <section className="mx-auto flex max-w-6xl flex-wrap items-start gap-10 px-4 pt-8 pb-14 sm:gap-14 sm:px-6 sm:pt-16 sm:pb-20">
+        <div className="flex min-w-0 flex-[1_1_520px] flex-col gap-5 sm:gap-7">
+          <span className="self-start rounded-full bg-brand-soft px-3 py-1.5 text-[13px] font-bold text-brand-dark sm:text-sm">자동차 단독 DB · 건당 CPA</span>
+          <h1 className="text-[32px] leading-[1.25] sm:text-[40px] font-extrabold tracking-[-0.03em] text-balance md:text-[56px]">
             경쟁 전화 없는 DB,
             <br />
             계약률 높은 <span className="text-accent">DB어때</span>
           </h1>
-          <p className="max-w-[34em] text-[17px] leading-relaxed text-sub sm:text-[19px]">
+          <p className="max-w-[34em] text-base leading-relaxed text-sub sm:text-[19px]">
             출처 확실 · 1:1 단독 · 건당 결제. 고객이 신청하는 순간, 단 한 명의 영업사원에게만 10초 안에 카카오 알림톡으로 보냅니다.
           </p>
-          <div className="flex flex-wrap items-end gap-x-5 gap-y-2 rounded-2xl border border-line px-7 py-6">
+          <div className="flex flex-wrap items-end gap-x-5 gap-y-2 rounded-2xl border border-line px-5 py-5 sm:px-7 sm:py-6">
             <div className="flex flex-col gap-1">
-              <span className="text-sm font-bold text-sub">신차 장기렌트 단독 실시간 DB 1건</span>
-              <span className="tabular text-[44px] leading-none font-extrabold tracking-[-0.03em]">40,000원</span>
+              <span className="text-[13px] font-bold text-sub sm:text-sm">신차 장기렌트 단독 실시간 DB 1건</span>
+              <span className="tabular text-[38px] leading-none sm:text-[44px] font-extrabold tracking-[-0.03em]">40,000원</span>
             </div>
-            <span className="pb-1 text-[15px] text-[#6b7684]">VAT 별도 · 패키지 없음 · 받은 만큼만 차감</span>
+            <span className="pb-1 text-sm text-[#6b7684] sm:text-[15px]">VAT 별도 · 패키지 없음 · 받은 만큼만 차감</span>
           </div>
-          <div className="flex flex-wrap gap-5">
+          <div className="grid grid-cols-2 gap-2 sm:hidden">
+            <a href="#login" onClick={scrollTo("login")} className="inline-flex h-12 items-center justify-center rounded-[10px] border border-[#d1d6db] text-[15px] font-bold">
+              로그인
+            </a>
+            <Link href="/signup" className="inline-flex h-12 items-center justify-center rounded-[10px] bg-brand text-[15px] font-bold text-white">
+              가입 신청
+            </Link>
+          </div>
+          <div className="flex flex-col divide-y divide-line rounded-2xl border border-line sm:flex-row sm:flex-wrap sm:gap-5 sm:divide-y-0 sm:rounded-none sm:border-0">
             {proofs.map((p) => (
-              <div key={p.title} className="flex min-w-0 flex-[1_1_160px] flex-col gap-2">
-                <p.icon size={28} className="text-brand" strokeWidth={2} />
-                <b className="text-[17px]">{p.title}</b>
-                <span className="text-sm leading-relaxed text-sub">{p.desc}</span>
+              <div key={p.title} className="flex min-w-0 items-start gap-3.5 px-5 py-4 sm:flex-[1_1_160px] sm:flex-col sm:gap-2 sm:p-0">
+                <p.icon size={28} className="mt-0.5 shrink-0 text-brand sm:mt-0" strokeWidth={2} />
+                <div className="flex flex-col gap-1 sm:gap-2">
+                  <b className="text-base sm:text-[17px]">{p.title}</b>
+                  <span className="text-sm leading-relaxed text-sub">{p.desc}</span>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="flex min-w-0 flex-[0_1_400px] flex-col gap-4">
+        <div id="login" className="flex min-w-0 flex-[1_1_400px] scroll-mt-20 flex-col gap-4 md:flex-[0_1_400px]">
           <form
             onSubmit={(e) => {
               e.preventDefault();
               submit();
             }}
-            className="flex flex-col gap-4 rounded-2xl border border-line bg-white p-7 shadow-[0_12px_32px_rgba(25,31,40,0.06)]"
+            className="flex flex-col gap-4 rounded-2xl border border-line bg-white p-5 sm:p-7 shadow-[0_12px_32px_rgba(25,31,40,0.06)]"
           >
             <b className="text-xl">로그인</b>
             <label htmlFor="login-id" className="flex flex-col gap-1.5 text-[13px] font-bold text-sub">
@@ -208,14 +218,31 @@ export default function MainPage() {
         </div>
       </section>
 
-      <section id="compare" className="scroll-mt-20 bg-page px-4 py-20 sm:px-6">
-        <div className="mx-auto flex max-w-6xl flex-col gap-8">
+      <section id="compare" className="scroll-mt-20 bg-page px-4 py-14 sm:px-6 sm:py-20">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 sm:gap-8">
           <div className="flex flex-col gap-3">
-            <h2 className="text-[28px] font-extrabold tracking-[-0.02em] sm:text-4xl">흔한 CPA 플랫폼과 무엇이 다른가요?</h2>
-            <p className="text-[17px] text-sub">가격을 숨기지 않고, 받는 사람을 늘리지 않고, 받을지 말지는 직접 정합니다.</p>
+            <h2 className="text-[26px] leading-tight font-extrabold tracking-[-0.02em] sm:text-4xl">흔한 CPA 플랫폼과 무엇이 다른가요?</h2>
+            <p className="text-base text-sub sm:text-[17px]">가격을 숨기지 않고, 받는 사람을 늘리지 않고, 받을지 말지는 직접 정합니다.</p>
           </div>
-          <div className="overflow-x-auto rounded-2xl border border-line bg-white">
-            <table className="w-full min-w-[640px] border-collapse text-base">
+          <div className="flex flex-col gap-3 md:hidden">
+            {compare.map(([k, other, ours]) => (
+              <div key={k} className="rounded-2xl border border-line bg-white p-5">
+                <b className="text-[15px]">{k}</b>
+                <div className="mt-3 flex flex-col gap-2 text-sm">
+                  <div className="flex gap-3 px-3">
+                    <span className="w-14 shrink-0 font-semibold text-[#6b7684]">흔한 CPA</span>
+                    <span className="text-sub">{other}</span>
+                  </div>
+                  <div className="flex gap-3 rounded-lg bg-brand-soft px-3 py-2.5">
+                    <span className="w-14 shrink-0 font-extrabold text-brand-dark">DB어때</span>
+                    <span className="font-bold text-ink">{ours}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="hidden overflow-hidden rounded-2xl border border-line bg-white md:block">
+            <table className="w-full border-collapse text-base">
               <thead>
                 <tr className="text-left">
                   <th className="w-[20%] border-b border-line px-6 py-4 text-sm font-bold text-[#6b7684]">항목</th>
@@ -237,18 +264,18 @@ export default function MainPage() {
         </div>
       </section>
 
-      <section id="flow" className="scroll-mt-20 px-4 py-20 sm:px-6">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-14">
-          <div className="flex min-w-0 flex-[1_1_560px] flex-col gap-7">
+      <section id="flow" className="scroll-mt-20 px-4 py-14 sm:px-6 sm:py-20">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-10 sm:gap-14">
+          <div className="flex min-w-0 flex-[1_1_560px] flex-col gap-6 sm:gap-7">
             <div className="flex flex-col gap-3">
-              <h2 className="text-[28px] font-extrabold tracking-[-0.02em] sm:text-4xl">DB 한 건이 도착하기까지</h2>
-              <p className="text-[17px] text-sub">고객이 신청 버튼을 누르고 <b className="text-ink">단 10초</b>면 내 휴대폰에 도착합니다.</p>
+              <h2 className="text-[26px] leading-tight font-extrabold tracking-[-0.02em] sm:text-4xl">DB 한 건이 도착하기까지</h2>
+              <p className="text-base text-sub sm:text-[17px]">고객이 신청 버튼을 누르고 <b className="text-ink">단 10초</b>면 내 휴대폰에 도착합니다.</p>
             </div>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-3 sm:gap-4">
               {steps.map(([title, desc], i) => (
-                <div key={title} className={`flex min-w-0 flex-[1_1_240px] flex-col gap-2.5 rounded-2xl border p-6 ${i === steps.length - 1 ? "border-brand bg-[#f7f9fe]" : "border-line"}`}>
+                <div key={title} className={`flex min-w-0 flex-[1_1_240px] flex-col gap-2 rounded-2xl border p-5 sm:gap-2.5 sm:p-6 ${i === steps.length - 1 ? "border-brand bg-[#f7f9fe]" : "border-line"}`}>
                   <span className="tabular text-sm font-extrabold text-brand">{i + 1}</span>
-                  <b className="text-lg">{title}</b>
+                  <b className="text-base sm:text-lg">{title}</b>
                   <span className="text-sm leading-relaxed text-sub">{desc}</span>
                 </div>
               ))}
@@ -260,22 +287,22 @@ export default function MainPage() {
         </div>
       </section>
 
-      <section id="industries" className="scroll-mt-24 px-4 pb-20 sm:px-6">
-        <div className="mx-auto flex max-w-6xl flex-col gap-8">
+      <section id="industries" className="scroll-mt-24 px-4 pb-14 sm:px-6 sm:pb-20">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 sm:gap-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="flex flex-col gap-3">
-              <h2 className="text-[28px] font-extrabold tracking-[-0.02em] sm:text-4xl">DB 구매 가능한 업종</h2>
-              <p className="text-[17px] text-sub">신차 장기렌트부터 시작해, 같은 방식으로 업종을 계속 늘려가고 있습니다.</p>
+              <h2 className="text-[26px] leading-tight font-extrabold tracking-[-0.02em] sm:text-4xl">DB 구매 가능한 업종</h2>
+              <p className="text-base text-sub sm:text-[17px]">신차 장기렌트부터 시작해, 같은 방식으로 업종을 계속 늘려가고 있습니다.</p>
             </div>
             <div className="flex items-center gap-4 text-sm font-semibold">
               <span className="flex items-center gap-1.5 text-ok"><span className="h-2 w-2 rounded-full bg-ok" />진행 중 1</span>
               <span className="flex items-center gap-1.5 text-[#6b7684]"><span className="h-2 w-2 rounded-full bg-[#c4cad0]" />준비 중 {industries.length - 1}</span>
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
             {industries.map((it) =>
               it.live ? (
-                <div key={it.name} className="relative flex flex-col gap-4 overflow-hidden rounded-2xl border-2 border-brand bg-[#f7f9fe] p-6">
+                <div key={it.name} className="relative flex flex-col gap-4 overflow-hidden rounded-2xl border-2 border-brand bg-[#f7f9fe] p-5 sm:p-6">
                   <div className="flex items-start justify-between gap-3">
                     <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand text-white">
                       <it.icon size={24} strokeWidth={2} />
@@ -298,22 +325,23 @@ export default function MainPage() {
                   </div>
                 </div>
               ) : (
-                <div key={it.name} className="flex flex-col gap-4 rounded-2xl border border-line bg-white p-6">
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-soft text-sub">
-                      <it.icon size={24} strokeWidth={1.8} />
+                <div key={it.name} className="flex items-center gap-4 rounded-2xl border border-line bg-white p-4 sm:flex-col sm:items-stretch sm:p-6">
+                  <div className="flex shrink-0 items-start justify-between gap-3">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-soft text-sub sm:h-12 sm:w-12">
+                      <it.icon size={22} strokeWidth={1.8} />
                     </span>
-                    <span className="rounded-full bg-soft px-2.5 py-1 text-xs font-bold text-[#6b7684]">준비 중</span>
+                    <span className="hidden rounded-full bg-soft px-2.5 py-1 text-xs font-bold text-[#6b7684] sm:inline">준비 중</span>
                   </div>
-                  <div className="flex flex-col gap-1">
-                    <b className="text-xl">{it.name}</b>
-                    <span className="text-sm text-sub">{it.desc}</span>
+                  <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:flex-none sm:gap-1">
+                    <b className="text-base sm:text-xl">{it.name}</b>
+                    <span className="text-[13px] text-sub sm:text-sm">{it.desc}</span>
                   </div>
-                  <span className="mt-auto border-t border-line pt-4 text-sm font-medium text-[#6b7684]">곧 열립니다</span>
+                  <span className="shrink-0 rounded-full bg-soft px-2.5 py-1 text-xs font-bold text-[#6b7684] sm:hidden">준비 중</span>
+                  <span className="mt-auto hidden border-t border-line pt-4 text-sm font-medium text-[#6b7684] sm:block">곧 열립니다</span>
                 </div>
               ),
             )}
-            <div className="flex flex-col justify-between gap-4 rounded-2xl border-2 border-dashed border-[#d1d6db] p-6">
+            <div className="flex flex-col justify-between gap-4 rounded-2xl border-2 border-dashed border-[#d1d6db] p-5 sm:p-6">
               <div className="flex flex-col gap-3">
                 <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-dashed border-[#c4cad0] text-[#6b7684]">
                   <Plus size={24} />
@@ -323,35 +351,35 @@ export default function MainPage() {
                   <span className="text-sm text-sub">받고 싶은 업종이 있다면 알려주세요. 먼저 열어 드립니다.</span>
                 </div>
               </div>
-              <KakaoButton label="업종 요청하기" className="self-start" />
+              <KakaoButton label="업종 요청하기" className="h-11 justify-center sm:h-10 sm:self-start" />
             </div>
           </div>
         </div>
       </section>
 
-      <section className="px-4 pb-20 sm:px-6">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 rounded-[20px] bg-brand p-8 text-white sm:p-12">
+      <section className="px-4 pb-14 sm:px-6 sm:pb-20">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 rounded-[20px] bg-brand p-6 text-white sm:p-12">
           <div className="flex min-w-0 flex-[1_1_480px] flex-col gap-2.5">
-            <h2 className="text-[26px] font-extrabold tracking-[-0.02em] sm:text-[32px]">결번이면 모두 돌려드립니다</h2>
-            <p className="text-[17px] leading-relaxed text-[#e3eafb]">DB를 받은 뒤 3시간 안에 불량 처리를 신청하면, 확인 후 예치금으로 환원됩니다.</p>
+            <h2 className="text-[22px] font-extrabold tracking-[-0.02em] sm:text-[32px]">결번이면 모두 돌려드립니다</h2>
+            <p className="text-[15px] leading-relaxed text-[#e3eafb] sm:text-[17px]">DB를 받은 뒤 3시간 안에 불량 처리를 신청하면, 확인 후 예치금으로 환원됩니다.</p>
           </div>
-          <Link href="/signup" className="inline-flex h-[52px] items-center rounded-[10px] bg-white px-6 text-base font-extrabold text-brand-dark hover:bg-[#f2f6fe]">
+          <Link href="/signup" className="inline-flex h-[52px] w-full items-center justify-center rounded-[10px] bg-white px-6 sm:w-auto text-base font-extrabold text-brand-dark hover:bg-[#f2f6fe]">
             광고주 가입 신청
           </Link>
         </div>
       </section>
 
-      <section id="faq" className="scroll-mt-20 bg-page px-4 py-20 sm:px-6">
-        <div className="mx-auto flex max-w-[860px] flex-col gap-6">
-          <h2 className="text-[28px] font-extrabold tracking-[-0.02em] sm:text-4xl">자주 묻는 질문</h2>
-          <div className="rounded-2xl border border-line bg-white px-7">
+      <section id="faq" className="scroll-mt-20 bg-page px-4 py-14 sm:px-6 sm:py-20">
+        <div className="mx-auto flex max-w-[860px] flex-col gap-5 sm:gap-6">
+          <h2 className="text-[26px] leading-tight font-extrabold tracking-[-0.02em] sm:text-4xl">자주 묻는 질문</h2>
+          <div className="rounded-2xl border border-line bg-white px-5 sm:px-7">
             {faqs.map(([q, a], i) => (
-              <details key={q} open={i === 0} className={`group py-5 ${i < faqs.length - 1 ? "border-b border-line" : ""}`}>
-                <summary className="flex cursor-pointer list-none justify-between gap-4 text-lg font-bold [&::-webkit-details-marker]:hidden">
+              <details key={q} open={i === 0} className={`group py-4 sm:py-5 ${i < faqs.length - 1 ? "border-b border-line" : ""}`}>
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-base font-bold sm:text-lg [&::-webkit-details-marker]:hidden">
                   {q}
-                  <span aria-hidden="true" className="text-[#6b7684] transition-transform group-open:rotate-45">+</span>
+                  <span aria-hidden="true" className="shrink-0 text-xl leading-none text-[#6b7684] transition-transform group-open:rotate-45">+</span>
                 </summary>
-                <p className="mt-3 text-base leading-relaxed text-sub">{a}</p>
+                <p className="mt-3 text-[15px] leading-relaxed text-sub sm:text-base">{a}</p>
               </details>
             ))}
           </div>

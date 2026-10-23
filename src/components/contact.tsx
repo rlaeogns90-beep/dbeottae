@@ -71,13 +71,13 @@ export function SiteFooter() {
             <dd>{COMPANY.address}</dd>
           </dl>
         </div>
-        <div className="space-y-3">
+        <div className="w-full space-y-3 sm:w-auto">
           <p className="text-sm text-sub">
             고객센터 <b className="tabular text-base text-ink">{COMPANY.tel}</b>
           </p>
-          <div className="flex flex-wrap gap-2">
-            <CallButton solid className="h-11" />
-            <KakaoButton label={`카카오톡 채널 ${COMPANY.kakaoChannel}`} className="h-11" />
+          <div className="grid gap-2 sm:flex sm:flex-wrap">
+            <CallButton solid className="h-11 justify-center" />
+            <KakaoButton label={`카카오톡 채널 ${COMPANY.kakaoChannel}`} className="h-11 justify-center" />
           </div>
         </div>
       </div>

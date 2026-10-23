@@ -40,7 +40,7 @@ export default function LeadsPage() {
         desc={`총 ${mine.length}건 · 새 DB는 새로고침 없이 바로 표시됩니다`}
         action={<Button variant="secondary" size="sm" onClick={download}><Download size={15} /> 엑셀 받기</Button>}
       />
-      <div className="mb-3 flex gap-1.5 overflow-x-auto">
+      <div className="-mx-4 mb-3 flex gap-1.5 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {filters.map((f) => {
           const n = f === "전체" ? mine.length : mine.filter((a) => a.consult === f).length;
           return (
