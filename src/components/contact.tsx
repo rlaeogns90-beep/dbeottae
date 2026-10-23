@@ -82,7 +82,13 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-line">
-        <p className="mx-auto max-w-6xl px-4 py-4 text-xs text-mute sm:px-6">© {COMPANY.name}. All rights reserved.</p>
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs sm:px-6">
+          <p className="text-mute">© {COMPANY.name}. All rights reserved.</p>
+          <nav className="flex gap-4 text-sub">
+            <a href="/terms" className="hover:text-ink">이용약관</a>
+            <a href="/privacy" className="font-bold text-ink">개인정보처리방침</a>
+          </nav>
+        </div>
       </div>
     </footer>
   );

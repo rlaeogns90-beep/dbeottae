@@ -16,7 +16,7 @@ export default function SignupPage() {
     referrer: typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("ref") ?? "" : "",
     receiptType: "tax" as ReceiptType,
     bizFileName: "", email: "",
-    cashName: "", cashPhone: "", rrn: "", address: "",
+    cashName: "", cashPhone: "",
     agreeTerms: false, agreePrivacy: false,
   }));
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +34,7 @@ export default function SignupPage() {
       [f.phone.replace(/\D/g, "").length < 10, "DB를 받을 연락처를 정확히 입력해 주세요."],
       [!f.referrer, "추천인 아이디는 필수입니다."],
       [f.receiptType === "tax" && (!f.bizFileName || !f.email), "사업자등록증과 계산서 받을 이메일을 입력해 주세요."],
-      [f.receiptType === "cash" && (!f.cashName || !f.cashPhone || !f.rrn || !f.address), "현금영수증 정보를 모두 입력해 주세요."],
+      [f.receiptType === "cash" && (!f.cashName || !f.cashPhone), "현금영수증 정보를 모두 입력해 주세요."],
       [!f.agreeTerms || !f.agreePrivacy, "필수 약관에 동의해 주세요."],
     ];
     const miss = need.find(([bad]) => bad);
@@ -43,7 +43,7 @@ export default function SignupPage() {
       loginId: f.loginId, password: f.password, name: f.name, phone: f.phone, company: f.company || undefined,
       referrer: f.referrer, receiptType: f.receiptType,
       tax: f.receiptType === "tax" ? { bizFileName: f.bizFileName, email: f.email } : undefined,
-      cash: f.receiptType === "cash" ? { name: f.cashName, phone: f.cashPhone, rrn: f.rrn, address: f.address } : undefined,
+      cash: f.receiptType === "cash" ? { name: f.cashName, phone: f.cashPhone } : undefined,
     });
     if (err) return setError(err);
     setDone(true);
@@ -130,14 +130,11 @@ export default function SignupPage() {
               <>
                 <div className="grid grid-cols-2 gap-3">
                   <Field label="이름" required><Input value={f.cashName} onChange={set("cashName")} /></Field>
-                  <Field label="연락처" required>
+                  <Field label="휴대전화번호" required>
                     <Input inputMode="numeric" value={f.cashPhone} onChange={(e) => setF({ ...f, cashPhone: formatPhone(e.target.value) })} />
                   </Field>
                 </div>
-                <Field label="주민등록번호" required hint="현금영수증 발행에만 쓰이며 암호화해서 보관합니다.">
-                  <Input inputMode="numeric" placeholder="000000-0000000" value={f.rrn} onChange={set("rrn")} />
-                </Field>
-                <Field label="주소" required><Input value={f.address} onChange={set("address")} /></Field>
+                <p className="text-[13px] text-mute">현금영수증은 휴대전화번호로 발급합니다.</p>
               </>
             )}
           </section>
@@ -145,11 +142,11 @@ export default function SignupPage() {
           <section className="space-y-2.5">
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={f.agreeTerms} onChange={set("agreeTerms")} className="h-4 w-4 accent-[#2659d9]" />
-              <span><span className="text-bad">[필수]</span> 이용약관 동의 (예치금 환불 불가 포함)</span>
+              <span><span className="text-bad">[필수]</span> 이용약관 동의 (예치금 환불 불가 포함) <a href="/terms" target="_blank" rel="noreferrer" className="font-semibold text-brand underline underline-offset-2">보기</a></span>
             </label>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={f.agreePrivacy} onChange={set("agreePrivacy")} className="h-4 w-4 accent-[#2659d9]" />
-              <span><span className="text-bad">[필수]</span> 개인정보 수집·이용 동의</span>
+              <span><span className="text-bad">[필수]</span> 개인정보 수집·이용 및 국외 이전 동의 <a href="/privacy" target="_blank" rel="noreferrer" className="font-semibold text-brand underline underline-offset-2">보기</a></span>
             </label>
           </section>
 

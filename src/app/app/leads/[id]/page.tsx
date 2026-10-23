@@ -32,7 +32,7 @@ export default function LeadDetail() {
     ...(lead.months ? ([["개월수", `${lead.months}개월`]] as [string, React.ReactNode][]) : []),
     ...(lead.memo ? ([["고객 메모", lead.memo]] as [string, React.ReactNode][]) : []),
     ["수신 시각", dateTime(a.assignedAt)],
-    ["광고소재명", lead.term || "-"],
+    ["브랜드명", lead.pageName || "-"],
   ];
 
   return (

@@ -18,7 +18,7 @@ export default function MePage() {
   const receipt: [string, string][] =
     adv.receiptType === "tax"
       ? [["증빙 종류", "세금계산서"], ["사업자등록증", adv.tax?.bizFileName ?? "-"], ["계산서 이메일", adv.tax?.email ?? "-"]]
-      : [["증빙 종류", "현금영수증"], ["이름", adv.cash?.name ?? "-"], ["연락처", adv.cash?.phone ?? "-"], ["주민등록번호", (adv.cash?.rrn ?? "").slice(0, 8) + "******"], ["주소", adv.cash?.address ?? "-"]];
+      : [["증빙 종류", "현금영수증"], ["이름", adv.cash?.name ?? "-"], ["연락처", adv.cash?.phone ?? "-"]];
 
   const Section = ({ title, rows }: { title: string; rows: [string, string][] }) => (
     <Card>

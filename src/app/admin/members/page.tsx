@@ -25,7 +25,7 @@ export default function MembersPage() {
               ["추천인", `${a.referrer}${referrer ? ` (${referrer.name})` : " · 등록되지 않은 코드"}`],
               ...(a.receiptType === "tax"
                 ? ([["증빙", "세금계산서"], ["사업자등록증", a.tax?.bizFileName ?? "-"], ["계산서 이메일", a.tax?.email ?? "-"]] as [string, string][])
-                : ([["증빙", "현금영수증"], ["현금영수증 정보", `${a.cash?.name} · ${a.cash?.phone}`], ["주민등록번호", `${a.cash?.rrn.slice(0, 8)}******`], ["주소", a.cash?.address ?? "-"]] as [string, string][])),
+                : ([["증빙", "현금영수증"], ["현금영수증 정보", `${a.cash?.name} · ${a.cash?.phone}`]] as [string, string][])),
             ];
             return (
               <Card key={a.id} className="p-5">

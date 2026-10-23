@@ -17,7 +17,7 @@ export function seed(now = Date.now()): State {
     {
       id: "adv2", loginId: "lee02", password: "1234", name: "이서연", phone: "010-3456-2202",
       referrer: "SALES01", receiptType: "cash",
-      cash: { name: "이서연", phone: "010-3456-2202", rrn: "900101-2******", address: "서울시 송파구" },
+      cash: { name: "이서연", phone: "010-3456-2202" },
       status: "approved", receiving: true, lastAssignedAt: ago(95), createdAt: ago(DAY * 45),
     },
     {
@@ -30,7 +30,7 @@ export function seed(now = Date.now()): State {
     {
       id: "adv4", loginId: "choi04", password: "1234", name: "최지우", phone: "010-5678-4404",
       referrer: "SALES02", receiptType: "cash",
-      cash: { name: "최지우", phone: "010-5678-4404", rrn: "920315-1******", address: "경기도 수원시" },
+      cash: { name: "최지우", phone: "010-5678-4404" },
       status: "approved", receiving: false, offAt: ago(30), offBy: "auto",
       lastAssignedAt: ago(30), createdAt: ago(DAY * 6),
     },

@@ -33,7 +33,8 @@ export function forClient(s: State, who: Session | null): State {
       ...empty,
       advertisers: noPw(s.advertisers.filter((a) => a.id === who.id)),
       assignments,
-      leads: s.leads.map((l) => (mine.has(l.id) ? l : masked(l))),
+      // 광고소재명(term)은 광고주에게 보내지 않는다. 브랜드명은 페이지명(pageName)으로 보여준다.
+      leads: s.leads.map((l) => (mine.has(l.id) ? { ...l, term: undefined } : masked(l))),
       wallet: s.wallet.filter((t) => t.advertiserId === who.id),
       deposits: s.deposits.filter((d) => d.advertiserId === who.id),
       defects: s.defects.filter((d) => ids.has(d.assignmentId)),

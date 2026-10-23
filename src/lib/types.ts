@@ -14,7 +14,8 @@ export interface Advertiser {
   referrer: string;
   receiptType: ReceiptType;
   tax?: { bizFileName: string; email: string };
-  cash?: { name: string; phone: string; rrn: string; address: string };
+  /** 현금영수증 (휴대전화번호로 발급, 주민번호는 받지 않음) */
+  cash?: { name: string; phone: string };
   status: MemberStatus;
   receiving: boolean;
   offAt?: string;
