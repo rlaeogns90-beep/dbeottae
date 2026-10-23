@@ -7,7 +7,7 @@ export const COMPANY = {
   tel: "1600-7628",
   ceo: "김대훈",
   bizNo: "618-44-01013",
-  address: "인천광역시 연수구 하모니로 158, D동 3층 17호(송도동, 송도타임스페이스)",
+  address: "인천광역시 연수구 송도미래로11번길 27, A동 15층 1501~1502호",
   kakaoChannel: "마케팅을다루다",
   kakaoUrl: "https://pf.kakao.com/_QxnAjG",
 };
