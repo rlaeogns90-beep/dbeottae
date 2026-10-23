@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+
+  --color-ink: #191f28;
+  --color-sub: #4e5968;
+  --color-mute: #8b95a1;
+  --color-line: #e5e8eb;
+  --color-soft: #f2f4f6;
+  --color-page: #f8f9fa;
+
+  --color-brand: #2659d9;
+  --color-brand-dark: #1d47b3;
+  --color-brand-soft: #edf2fd;
+  --color-accent: #f26b1d;
+
+  --color-ok: #127a4b;
+  --color-ok-soft: #e7f6ee;
+  --color-warn: #b45309;
+  --color-warn-soft: #fdf3e2;
+  --color-bad: #c9302c;
+  --color-bad-soft: #fdecec;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: #ffffff;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  letter-spacing: -0.01em;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+  letter-spacing: inherit;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
