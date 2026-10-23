@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CallButton, COMPANY, KakaoButton, KakaoIcon, SiteFooter } from "@/components/contact";
 import { LiveFeed } from "@/components/live-feed";
+import { LiveStats } from "@/components/live-stats";
 import { Logo, Notice } from "@/components/ui";
 import { useStore } from "@/lib/store";
 import type { Session } from "@/lib/types";
@@ -182,6 +183,7 @@ export default function MainPage() {
               </div>
             ))}
           </div>
+          <LiveStats />
         </div>
 
         <div id="login" className="flex min-w-0 flex-[1_1_400px] scroll-mt-20 flex-col gap-4 md:flex-[0_1_400px]">
