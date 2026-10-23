@@ -3,10 +3,11 @@
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { CONSULTS, consultTone } from "@/components/lead-parts";
 import { Badge, Button, Card, cx, Empty, Field, Input, Modal, Notice, PageHeader, Select, Stat, Table, td, th } from "@/components/ui";
 import { dateTime, formatPhone, timeAgo, won } from "@/lib/format";
 import { useStore } from "@/lib/store";
-import type { LeadStatus } from "@/lib/types";
+import type { ConsultStatus, LeadStatus } from "@/lib/types";
 
 const tabs: { key: "all" | LeadStatus; label: string }[] = [
   { key: "all", label: "전체" },
@@ -16,18 +17,30 @@ const tabs: { key: "all" | LeadStatus; label: string }[] = [
 ];
 
 const sameDay = (iso: string, now: Date) => new Date(iso).toDateString() === now.toDateString();
+const uniq = (xs: (string | undefined)[]) => [...new Set(xs.filter((x): x is string => !!x))].sort();
+const emptyForm = { name: "", phone: "", car: "", memo: "", site: "", pageName: "", term: "", groupId: "" };
 
 export default function RealtimePage() {
   const { state, now, simulateLead } = useStore();
   const [tab, setTab] = useState<(typeof tabs)[number]["key"]>("all");
+  const [page, setPage] = useState("");
+  const [site, setSite] = useState("");
+  const [consult, setConsult] = useState<"" | "none" | ConsultStatus>("");
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", phone: "", car: "", months: "48", groupId: "" });
+  const [form, setForm] = useState(emptyForm);
 
+  const consultOf = (leadId: string) => state.assignments.find((x) => x.leadId === leadId);
   const today = state.leads.filter((l) => sameDay(l.createdAt, now));
   const todaySales = state.assignments.filter((a) => sameDay(a.assignedAt, now)).reduce((n, a) => n + a.amount, 0);
-  const list = [...state.leads]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .filter((l) => tab === "all" || l.status === tab);
+  const filtered = state.leads.filter((l) => {
+    if (page && l.pageName !== page) return false;
+    if (site && l.site !== site) return false;
+    const c = consultOf(l.id)?.consult;
+    if (consult === "none") return !c;
+    return !consult || c === consult;
+  });
+  const list = [...filtered].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).filter((l) => tab === "all" || l.status === tab);
+  const filtering = page || site || consult;
 
   return (
     <div>
@@ -45,6 +58,36 @@ export default function RealtimePage() {
         <Stat label="오늘 매출 (VAT 포함)" value={won(todaySales)} />
       </div>
 
+      <div className="mb-3 flex flex-wrap items-end gap-2">
+        <label className="flex flex-col gap-1 text-xs font-semibold text-sub">
+          페이지명
+          <Select className="w-44" value={page} onChange={(e) => setPage(e.target.value)}>
+            <option value="">전체</option>
+            {uniq(state.leads.map((l) => l.pageName)).map((v) => <option key={v} value={v}>{v}</option>)}
+          </Select>
+        </label>
+        <label className="flex flex-col gap-1 text-xs font-semibold text-sub">
+          매체
+          <Select className="w-40" value={site} onChange={(e) => setSite(e.target.value)}>
+            <option value="">전체</option>
+            {uniq(state.leads.map((l) => l.site)).map((v) => <option key={v} value={v}>{v}</option>)}
+          </Select>
+        </label>
+        <label className="flex flex-col gap-1 text-xs font-semibold text-sub">
+          상담 상태
+          <Select className="w-36" value={consult} onChange={(e) => setConsult(e.target.value as typeof consult)}>
+            <option value="">전체</option>
+            {CONSULTS.map((c) => <option key={c} value={c}>{c}</option>)}
+            <option value="none">배정 전</option>
+          </Select>
+        </label>
+        {filtering && (
+          <Button variant="secondary" size="sm" className="mb-0.5" onClick={() => { setPage(""); setSite(""); setConsult(""); }}>
+            필터 해제
+          </Button>
+        )}
+      </div>
+
       <div className="mb-3 flex gap-1.5 overflow-x-auto">
         {tabs.map((t) => (
           <button
@@ -52,7 +95,7 @@ export default function RealtimePage() {
             onClick={() => setTab(t.key)}
             className={cx("h-8 shrink-0 rounded-full px-3 text-[13px] font-semibold", tab === t.key ? "bg-ink text-white" : "border border-line bg-white text-sub")}
           >
-            {t.label} {t.key === "all" ? state.leads.length : state.leads.filter((l) => l.status === t.key).length}
+            {t.label} {t.key === "all" ? filtered.length : filtered.filter((l) => l.status === t.key).length}
           </button>
         ))}
       </div>
@@ -64,17 +107,19 @@ export default function RealtimePage() {
           <Table>
             <thead>
               <tr>
-                <th className={th}>접수</th>
-                <th className={th}>고객</th>
-                <th className={th}>차종 · 개월수</th>
-                <th className={th}>유입 (매체 · 브랜드)</th>
+                <th className={th}>접수시간</th>
+                <th className={th}>이름 · 연락처</th>
+                <th className={th}>차종 · 메모</th>
+                <th className={th}>페이지명 · 매체</th>
+                <th className={th}>광고소재명</th>
                 <th className={th}>배정 광고주</th>
-                <th className={th}>상태</th>
+                <th className={th}>배정 상태</th>
+                <th className={th}>상담 상태</th>
               </tr>
             </thead>
             <tbody>
               {list.map((l) => {
-                const a = state.assignments.find((x) => x.leadId === l.id);
+                const a = consultOf(l.id);
                 const adv = a && state.advertisers.find((x) => x.id === a.advertiserId);
                 const fresh = now.getTime() - new Date(l.createdAt).getTime() < 90_000;
                 return (
@@ -83,13 +128,20 @@ export default function RealtimePage() {
                       {dateTime(l.createdAt)}
                       <p className="text-xs text-mute">{timeAgo(l.createdAt, now)}</p>
                     </td>
-                    <td className={td}>
+                    <td className={`${td} whitespace-nowrap`}>
                       <p className="font-semibold">{l.name}</p>
                       <p className="tabular text-xs text-sub">{l.phone}</p>
                     </td>
-                    <td className={td}>{l.car} · {l.months}개월</td>
-                    <td className={`${td} text-[13px] text-sub`}>{l.site} · <span className="font-semibold text-ink">{l.brand}</span></td>
                     <td className={td}>
+                      <p className="whitespace-nowrap">{l.car || "-"}</p>
+                      {l.memo && <p className="min-w-32 max-w-56 text-xs text-sub">{l.memo}</p>}
+                    </td>
+                    <td className={`${td} whitespace-nowrap`}>
+                      <p>{l.pageName || "-"}</p>
+                      <p className="text-xs text-sub">{l.site || "-"}</p>
+                    </td>
+                    <td className={`${td} whitespace-nowrap text-[13px]`}>{l.term || "-"}</td>
+                    <td className={`${td} whitespace-nowrap`}>
                       {adv ? (
                         <>
                           <p className="font-medium">{adv.name}</p>
@@ -99,7 +151,7 @@ export default function RealtimePage() {
                         <span className="text-mute">-</span>
                       )}
                     </td>
-                    <td className={td}>
+                    <td className={`${td} whitespace-nowrap`}>
                       {l.status === "assigned" && <Badge tone="blue">배정</Badge>}
                       {l.status === "defect" && <Badge tone="red">불량</Badge>}
                       {l.status === "waiting" && (
@@ -109,6 +161,7 @@ export default function RealtimePage() {
                         </Link>
                       )}
                     </td>
+                    <td className={td}>{a ? <Badge tone={consultTone[a.consult]}>{a.consult}</Badge> : <span className="text-mute">-</span>}</td>
                   </tr>
                 );
               })}
@@ -126,11 +179,21 @@ export default function RealtimePage() {
             <Button variant="secondary" className="flex-1" onClick={() => { simulateLead(); setOpen(false); }}>무작위로 넣기</Button>
             <Button
               className="flex-1"
-              disabled={!form.name || !form.phone || !form.car}
+              disabled={!form.name || !form.phone}
               onClick={() => {
-                simulateLead({ name: form.name, phone: form.phone, car: form.car, months: Number(form.months), groupId: form.groupId || undefined });
+                simulateLead({
+                  name: form.name,
+                  phone: form.phone,
+                  car: form.car,
+                  brand: form.car.split(" ")[0] || undefined,
+                  memo: form.memo || undefined,
+                  site: form.site || "테스트",
+                  pageName: form.pageName || undefined,
+                  term: form.term || undefined,
+                  groupId: form.groupId || undefined,
+                });
                 setOpen(false);
-                setForm({ name: "", phone: "", car: "", months: "48", groupId: "" });
+                setForm(emptyForm);
               }}
             >
               접수하기
@@ -139,17 +202,16 @@ export default function RealtimePage() {
         }
       >
         <div className="space-y-3">
-          <Notice>외부 접수 페이지에서 DB가 들어온 것처럼 배정 엔진을 실행합니다. 같은 번호를 다시 넣으면 다른 광고주에게 가는지 확인할 수 있습니다.</Notice>
+          <Notice>웹훅으로 DB가 들어온 것처럼 배정 엔진을 실행합니다. 같은 번호를 다시 넣으면 다른 광고주에게 가는지 확인할 수 있습니다.</Notice>
           <div className="grid grid-cols-2 gap-3">
             <Field label="이름" required><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
             <Field label="연락처" required><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: formatPhone(e.target.value) })} /></Field>
-            <Field label="차종" required><Input value={form.car} onChange={(e) => setForm({ ...form, car: e.target.value })} placeholder="현대 그랜저" /></Field>
-            <Field label="개월수" required>
-              <Select value={form.months} onChange={(e) => setForm({ ...form, months: e.target.value })}>
-                {["24", "36", "48", "60"].map((m) => <option key={m} value={m}>{m}개월</option>)}
-              </Select>
-            </Field>
+            <Field label="차종"><Input value={form.car} onChange={(e) => setForm({ ...form, car: e.target.value })} placeholder="현대 그랜저" /></Field>
+            <Field label="메모"><Input value={form.memo} onChange={(e) => setForm({ ...form, memo: e.target.value })} /></Field>
+            <Field label="페이지명"><Input value={form.pageName} onChange={(e) => setForm({ ...form, pageName: e.target.value })} /></Field>
+            <Field label="매체"><Input value={form.site} onChange={(e) => setForm({ ...form, site: e.target.value })} placeholder="메타" /></Field>
           </div>
+          <Field label="광고소재명"><Input value={form.term} onChange={(e) => setForm({ ...form, term: e.target.value })} /></Field>
           <Field label="그룹 지정 (선택)">
             <Select value={form.groupId} onChange={(e) => setForm({ ...form, groupId: e.target.value })}>
               <option value="">전체 광고주</option>

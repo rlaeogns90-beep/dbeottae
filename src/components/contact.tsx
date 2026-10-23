@@ -56,7 +56,7 @@ export function SiteFooter() {
     <footer className="border-t border-line bg-white">
       <div className="mx-auto flex max-w-6xl flex-wrap items-start justify-between gap-8 px-4 py-10 sm:px-6">
         <div className="space-y-3">
-          <Logo size={20} />
+          <Logo size={26} tagline />
           <p className="text-xs font-bold tracking-[0.08em] text-mute">COMPANY INFO</p>
           <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-[13px] text-sub">
             <dt className="font-semibold text-ink">상호</dt>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { carLine } from "@/components/lead-parts";
 import { Badge, Button, Card, Empty, Notice, PageHeader, Select } from "@/components/ui";
 import { balanceOf, checkAdvertiser, todayCount, type Ineligible } from "@/lib/engine";
 import { dateTime, timeAgo, won } from "@/lib/format";
@@ -32,7 +33,7 @@ function WaitingCard({ lead }: { lead: Lead }) {
             <span className="tabular text-sm text-sub">{lead.phone}</span>
             <Badge tone="orange">{lead.waitReason}</Badge>
           </div>
-          <p className="mt-1 text-[13px] text-sub">{lead.car} · {lead.months}개월 · {lead.site} · {lead.brand}</p>
+          <p className="mt-1 text-[13px] text-sub">{carLine(lead)} · {[lead.pageName, lead.site].filter(Boolean).join(" · ")}{lead.term ? ` · ${lead.term}` : ""}</p>
         </div>
         <p className="text-xs text-mute">{dateTime(lead.createdAt)} · {timeAgo(lead.createdAt, now)}</p>
       </div>

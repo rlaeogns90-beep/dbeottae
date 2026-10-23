@@ -2,7 +2,7 @@
 
 import { usePartner } from "@/components/shells";
 import { Badge, Card, Empty, Notice, PageHeader, Table, td, th } from "@/components/ui";
-import { consultTone } from "@/components/lead-parts";
+import { carLine, consultTone } from "@/components/lead-parts";
 import { dateTime, maskName, maskPhone } from "@/lib/format";
 import { partnerStats } from "@/lib/partner";
 import { useStore } from "@/lib/store";
@@ -41,7 +41,7 @@ export default function PartnerLeads() {
                     <td className={td}>
                       {maskName(lead.name)} <span className="tabular text-sub">{maskPhone(lead.phone)}</span>
                     </td>
-                    <td className={td}>{lead.car} · {lead.months}개월</td>
+                    <td className={td}>{carLine(lead)}</td>
                     <td className={td}><Badge tone={consultTone[a.consult]}>{a.consult}</Badge></td>
                   </tr>
                 );

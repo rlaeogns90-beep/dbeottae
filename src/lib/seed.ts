@@ -1,4 +1,4 @@
-// 프로토타입용 예시 데이터. 실제 운영에서는 서버 DB로 바뀐다.
+// 예시 데이터. 서버 DB가 비어 있을 때 한 번 넣는다 (연결 키는 서버에서 새로 만든다).
 import type { Advertiser, Assignment, DefectReport, DepositRequest, Lead, State, WalletTx } from "./types";
 
 export const STATE_VERSION = 7;
@@ -43,18 +43,19 @@ export function seed(now = Date.now()): State {
   ];
 
   const lead = (id: string, name: string, phone: string, car: string, months: number, min: number, status: Lead["status"], extra: Partial<Lead> = {}): Lead => ({
-    id, name, phone, car, months, brand: car.split(" ")[0], createdAt: ago(min), status, site: "장기렌트 견적 사이트", ...extra,
+    id, name, phone, car, months, brand: car.split(" ")[0], createdAt: ago(min), status,
+    site: "메타", pageName: "장기렌트 특가", term: "신차_특가_01", ...extra,
   });
 
   const leads: Lead[] = [
     lead("ld1", "홍길동", "010-1111-2222", "현대 그랜저", 48, 12, "assigned", { region: "서울 강남구", buyType: "장기렌트" }),
-    lead("ld2", "강수민", "010-2222-3333", "기아 쏘렌토", 60, 40, "assigned", { region: "경기 성남시", buyType: "리스", site: "리스 비교 사이트" }),
+    lead("ld2", "강수민", "010-2222-3333", "기아 쏘렌토", 60, 40, "assigned", { region: "경기 성남시", buyType: "리스", site: "인스타그램", pageName: "신차 즉시출고", term: "즉시출고_영상_02", memo: "오후 6시 이후 통화 희망" }),
     lead("ld3", "윤재희", "010-3333-4444", "제네시스 GV70", 36, 95, "assigned", { region: "서울 송파구" }),
     lead("ld4", "임하준", "010-4444-5555", "기아 카니발", 60, 30, "assigned", { region: "경기 수원시", buyType: "장기렌트" }),
     lead("ld5", "오세린", "010-5555-6666", "현대 싼타페", 48, 60 * 3 + 20, "assigned", { region: "인천 연수구" }),
     lead("ld6", "한지민", "010-6666-7777", "BMW 520i", 36, 60 * 26, "assigned", { region: "서울 서초구", buyType: "리스" }),
     lead("ld7", "서준호", "010-7777-8888", "현대 아반떼", 48, 8, "waiting", { waitReason: "하루 한도 초과", region: "대전 유성구" }),
-    lead("ld8", "문가은", "010-8888-9999", "기아 EV6", 60, 3, "waiting", { waitReason: "배정 가능한 광고주 없음", site: "전기차 견적 사이트" }),
+    lead("ld8", "문가은", "010-8888-9999", "기아 EV6", 60, 3, "waiting", { waitReason: "배정 가능한 광고주 없음", site: "페이스북", pageName: "전기차 장기렌트", term: "EV_혜택_03" }),
     lead("ld9", "배유진", "010-9999-0000", "현대 투싼", 48, 60 * 2, "assigned", { region: "부산 해운대구" }),
     // 지난달 배정분 (영업자 월별 실적 예시)
     lead("ld10", "구나연", "010-1212-3434", "현대 쏘나타", 48, DAY * 33, "assigned", { region: "서울 마포구" }),
@@ -157,6 +158,7 @@ export function seed(now = Date.now()): State {
       lastGroupId: "g1",
       solapi: { apiKey: "", channel: "마케팅을다루다", sender: "1600-7628" },
       connections: [
+        { id: "cn0", name: "제피어 · 메타 잠재고객", type: "landing", key: "lk_seed0000", active: true },
         { id: "cn1", name: "장기렌트 견적 사이트", type: "landing", key: "lk_7f3a9c21", active: true },
         { id: "cn2", name: "리스 비교 사이트", type: "landing", key: "lk_b81d04e6", active: true },
         { id: "cn3", name: "외부 관리자 어드민", type: "admin", key: "ak_52ce19f0", active: true },

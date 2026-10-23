@@ -97,8 +97,12 @@ export default function MainPage() {
   const [pw, setPw] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const submit = (loginId = id, password = pw) => {
-    const r = login(loginId, password);
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (loginId = id, password = pw) => {
+    setBusy(true);
+    const r = await login(loginId, password);
+    setBusy(false);
     if ("error" in r) return setError(r.error);
     router.push(home[r.role]);
   };
@@ -196,7 +200,7 @@ export default function MainPage() {
               <input id="login-pw" type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="current-password" className="h-12 rounded-[10px] border border-[#d1d6db] px-3.5 text-base font-normal text-ink outline-none focus:border-brand focus:ring-2 focus:ring-brand/15" />
             </label>
             {error && <p className="text-[13px] text-bad">{error}</p>}
-            <button type="submit" className="h-[52px] rounded-[10px] bg-brand text-base font-bold text-white hover:bg-brand-dark">로그인</button>
+            <button type="submit" disabled={busy} className="h-[52px] rounded-[10px] bg-brand text-base font-bold text-white hover:bg-brand-dark disabled:opacity-60">{busy ? "확인 중…" : "로그인"}</button>
             <div className="flex justify-between text-sm">
               <span className="text-[#6b7684]">처음 오셨나요?</span>
               <Link href="/signup" className="font-bold text-brand">광고주 가입 신청</Link>

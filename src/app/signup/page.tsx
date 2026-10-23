@@ -24,7 +24,7 @@ export default function SignupPage() {
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setF({ ...f, [k]: e.target.type === "checkbox" ? e.target.checked : e.target.value });
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const need: [boolean, string][] = [
       [!f.loginId || !f.password, "아이디와 비밀번호를 입력해 주세요."],
@@ -38,7 +38,7 @@ export default function SignupPage() {
     ];
     const miss = need.find(([bad]) => bad);
     if (miss) return setError(miss[1]);
-    const err = signupAdvertiser({
+    const err = await signupAdvertiser({
       loginId: f.loginId, password: f.password, name: f.name, phone: f.phone, company: f.company || undefined,
       referrer: f.referrer, receiptType: f.receiptType,
       tax: f.receiptType === "tax" ? { bizFileName: f.bizFileName, email: f.email } : undefined,

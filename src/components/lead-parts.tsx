@@ -5,17 +5,21 @@ import Link from "next/link";
 import { defectDeadline } from "@/lib/engine";
 import { remaining, timeAgo } from "@/lib/format";
 import { useStore } from "@/lib/store";
-import type { Assignment, ConsultStatus } from "@/lib/types";
+import type { Assignment, ConsultStatus, Lead } from "@/lib/types";
 import { Badge } from "./ui";
 
-export const CONSULTS: ConsultStatus[] = ["대기", "견적발송", "계약", "관리"];
+export const CONSULTS: ConsultStatus[] = ["대기", "견적발송", "계약", "관리", "계약취소"];
 
 export const consultTone: Record<ConsultStatus, "gray" | "blue" | "green" | "orange" | "red"> = {
   대기: "blue",
   견적발송: "orange",
   계약: "green",
   관리: "gray",
+  계약취소: "red",
 };
+
+/** 차종 · 개월수 (개월수는 있을 때만) */
+export const carLine = (l: Lead) => [l.car || "차종 미입력", l.months ? `${l.months}개월` : ""].filter(Boolean).join(" · ");
 
 export function useDefectState(a?: Assignment) {
   const { state, now } = useStore();
@@ -44,11 +48,8 @@ export function LeadRow({ a }: { a: Assignment }) {
         <div className="flex items-center gap-2">
           <span className="text-[15px] font-semibold">{lead.name}</span>
           <span className="tabular text-sm text-sub">{lead.phone}</span>
-          <Badge>{lead.brand}</Badge>
         </div>
-        <p className="mt-0.5 truncate text-[13px] text-sub">
-          {lead.car} · {lead.months}개월
-        </p>
+        <p className="mt-0.5 truncate text-[13px] text-sub">{carLine(lead)}</p>
         <div className="mt-1.5 flex flex-wrap items-center gap-2">
           <Badge tone={consultTone[a.consult]}>{a.consult}</Badge>
           <DefectBadge a={a} />

@@ -50,20 +50,25 @@ export interface Lead {
   name: string;
   phone: string;
   car: string;
-  months: number;
+  /** 고객이 남긴 메모 (웹훅 car_memo) */
+  memo?: string;
+  months?: number;
   buyType?: string;
   region?: string;
-  /** 매체 사이트명 */
+  /** 매체 (웹훅 source) */
   site: string;
-  /** 유입 브랜드 (광고주에게는 이것만 보인다) */
-  brand: string;
+  /** 페이지명 (웹훅 page_name) */
+  pageName?: string;
+  /** 광고소재명 (웹훅 term) */
+  term?: string;
+  brand?: string;
   groupId?: string;
   createdAt: string;
   status: LeadStatus;
   waitReason?: string;
 }
 
-export type ConsultStatus = "대기" | "견적발송" | "계약" | "관리";
+export type ConsultStatus = "대기" | "견적발송" | "계약" | "관리" | "계약취소";
 
 export interface Assignment {
   id: string;
@@ -146,6 +151,8 @@ export interface Settings {
 export interface Session {
   role: "advertiser" | "partner" | "admin";
   id: string;
+  /** 서버가 발급한 로그인 토큰 */
+  token?: string;
 }
 
 export interface State {

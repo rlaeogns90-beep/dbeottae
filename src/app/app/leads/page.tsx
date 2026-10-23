@@ -19,10 +19,10 @@ export default function LeadsPage() {
   const list = filter === "전체" ? mine : mine.filter((a) => a.consult === filter);
 
   const download = () => {
-    const rows = [["수신 시각", "이름", "연락처", "브랜드", "차종", "개월수", "상담 상태", "메모"]];
+    const rows = [["수신 시각", "광고소재명", "이름", "연락처", "차종", "상담 상태", "메모"]];
     for (const a of mine) {
       const l = state.leads.find((x) => x.id === a.leadId)!;
-      rows.push([dateTime(a.assignedAt), l.name, l.phone, l.brand, l.car, `${l.months}`, a.consult, a.memo]);
+      rows.push([dateTime(a.assignedAt), l.term ?? "", l.name, l.phone, l.car, a.consult, a.memo]);
     }
     const csv = "﻿" + rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));

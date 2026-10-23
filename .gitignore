@@ -47,3 +47,9 @@ next-env.d.ts
 
 # 로컬 개발 도구 설정
 /.claude
+
+.env*
+
+# Vercel CLI가 설치한 에이전트 스킬
+/.agents
+skills-lock.json

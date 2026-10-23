@@ -7,13 +7,15 @@ export const uid = (p: string) => `${p}_${Math.random().toString(36).slice(2, 9)
 export const balanceOf = (s: State, advertiserId: string) =>
   s.wallet.filter((t) => t.advertiserId === advertiserId).reduce((sum, t) => sum + t.amount, 0);
 
-const sameDay = (a: Date, b: Date) =>
-  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+// 날짜 비교는 서버(UTC)에서 돌아도 한국 시간 기준이 되도록 +9시간 옮겨서 계산한다.
+const kst = (d: Date) => new Date(d.getTime() + 9 * 3600_000);
+
+const sameDay = (a: Date, b: Date) => kst(a).toISOString().slice(0, 10) === kst(b).toISOString().slice(0, 10);
 
 export const todayCount = (s: State, advertiserId: string, now = new Date()) =>
   s.assignments.filter((a) => a.advertiserId === advertiserId && sameDay(new Date(a.assignedAt), now)).length;
 
-export const isWeekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
+export const isWeekend = (d: Date) => kst(d).getUTCDay() === 0 || kst(d).getUTCDay() === 6;
 
 /** 수동 OFF 후 다시 켤 수 있는 시각. 자동 OFF(예치금 소진)는 제한 없음. */
 export const reopenAt = (s: State, adv: Advertiser) =>
@@ -70,7 +72,7 @@ export function assign(
     type: "debit",
     amount: -s.settings.price,
     at,
-    note: `DB 배정 · ${lead.name} ${lead.car}`,
+    note: `DB 배정 · ${lead.name}${lead.car ? ` ${lead.car}` : ""}`,
   };
   let next: State = {
     ...s,

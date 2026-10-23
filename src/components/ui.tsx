@@ -238,12 +238,14 @@ export function Notice({ tone = "gray", children }: { tone?: "gray" | "blue" | "
   );
 }
 
-export function Logo({ size = 20 }: { size?: number }) {
-  return (
-    <span className="font-extrabold tracking-tight" style={{ fontSize: size }}>
-      <span className="text-accent">DB</span>
-      <span className="text-ink">어때</span>
-    </span>
+/** 사이트 로고. size는 글자 높이(px), tagline이면 아래 "영업사원을 위한 DB 오픈 마켓"까지 */
+export function Logo({ size = 20, tagline }: { size?: number; tagline?: boolean }) {
+  return tagline ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/logo-tagline.png" alt="DB어때 · 영업사원을 위한 DB 오픈 마켓" width={1020} height={282} style={{ height: size * 1.6, width: "auto" }} className="block" />
+  ) : (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/logo.png" alt="DB어때" width={1016} height={177} style={{ height: size, width: "auto" }} className="block" />
   );
 }
 

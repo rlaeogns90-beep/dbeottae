@@ -4,7 +4,7 @@ import { ChevronLeft, Phone } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { CONSULTS, consultTone, useDefectState } from "@/components/lead-parts";
+import { carLine, CONSULTS, consultTone, useDefectState } from "@/components/lead-parts";
 import { useAdvertiser } from "@/components/shells";
 import { Badge, Button, Card, cx, Empty, Field, Modal, Notice, Textarea } from "@/components/ui";
 import { dateTime } from "@/lib/format";
@@ -28,10 +28,11 @@ export default function LeadDetail() {
 
   const rows: [string, React.ReactNode][] = [
     ["연락처", <span key="p" className="tabular">{lead.phone}</span>],
-    ["브랜드", lead.brand],
-    ["차종", lead.car],
-    ["개월수", `${lead.months}개월`],
+    ["차종", lead.car || "-"],
+    ...(lead.months ? ([["개월수", `${lead.months}개월`]] as [string, React.ReactNode][]) : []),
+    ...(lead.memo ? ([["고객 메모", lead.memo]] as [string, React.ReactNode][]) : []),
     ["수신 시각", dateTime(a.assignedAt)],
+    ["광고소재명", lead.term || "-"],
   ];
 
   return (
@@ -43,11 +44,8 @@ export default function LeadDetail() {
       <Card className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-[22px] font-bold">{lead.name}</h1>
-              <Badge>{lead.brand}</Badge>
-            </div>
-            <p className="mt-0.5 text-sm text-sub">{lead.car} · {lead.months}개월</p>
+            <h1 className="text-[22px] font-bold">{lead.name}</h1>
+            <p className="mt-0.5 text-sm text-sub">{carLine(lead)}</p>
           </div>
           <Badge tone={consultTone[a.consult]}>{a.consult}</Badge>
         </div>
@@ -58,7 +56,7 @@ export default function LeadDetail() {
           {rows.map(([k, v]) => (
             <div key={k} className="flex justify-between py-3 text-sm">
               <dt className="text-sub">{k}</dt>
-              <dd className="font-medium">{v}</dd>
+              <dd className="text-right font-medium">{v}</dd>
             </div>
           ))}
         </dl>
@@ -66,7 +64,7 @@ export default function LeadDetail() {
 
       <Card className="mt-4 p-5">
         <p className="mb-2 text-[13px] font-semibold text-sub">상담 상태</p>
-        <div className="grid grid-cols-4 gap-1.5">
+        <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
           {CONSULTS.map((c) => (
             <button
               key={c}

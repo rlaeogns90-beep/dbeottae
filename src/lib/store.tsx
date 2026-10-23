@@ -1,14 +1,14 @@
 "use client";
 
-// 프로토타입 저장소: 브라우저 localStorage에 상태를 두고, 다른 탭과 실시간으로 맞춘다.
-// 서버를 붙일 때는 이 파일의 액션들이 API 호출로 바뀐다.
+// 저장소: 서버(Neon Postgres)에 있는 전체 상태를 받아 쓰고, 바뀐 내용은 서버에 저장한다.
+// 다른 기기·브라우저에서 바꾼 내용과 웹훅으로 들어온 DB는 몇 초마다 다시 받아와 맞춘다.
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import type { SignupInput } from "./accounts";
 import { assign, checkAdvertiser, defectDeadline, reopenAt, routeLead, uid } from "./engine";
-import { seed, STATE_VERSION } from "./seed";
 import type { Advertiser, Assignment, DefectReason, Lead, Partner, Session, Settings, State } from "./types";
 
-const STATE_KEY = "dbeottae:state";
 const SESSION_KEY = "dbeottae:session";
+const POLL_MS = 4000;
 
 type Result = string | null;
 
@@ -17,9 +17,9 @@ interface Store {
   session: Session | null;
   now: Date;
   /** 아이디 하나로 로그인하고, 계정 종류(광고주·영업자·관리자)에 맞는 화면으로 보낸다. */
-  login: (loginId: string, password: string) => { error: string } | { role: Session["role"] };
+  login: (loginId: string, password: string) => Promise<{ error: string } | { role: Session["role"] }>;
   logout: () => void;
-  signupAdvertiser: (a: Omit<Advertiser, "id" | "status" | "receiving" | "createdAt">) => Result;
+  signupAdvertiser: (a: SignupInput) => Promise<Result>;
   createPartner: (p: Omit<Partner, "id" | "status" | "createdAt" | "code">) => Result;
   setReceiving: (advertiserId: string, on: boolean) => Result;
   requestDeposit: (advertiserId: string, amount: number, depositor: string) => Result;
@@ -46,15 +46,14 @@ interface Store {
 
 const Ctx = createContext<Store | null>(null);
 
-function load(): State {
+function readSession(): Session | null {
   try {
-    const raw = localStorage.getItem(STATE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw) as State;
-      if (parsed.version === STATE_VERSION) return parsed;
-    }
-  } catch {}
-  return seed();
+    const raw = localStorage.getItem(SESSION_KEY);
+    const s = raw ? (JSON.parse(raw) as Session) : null;
+    return s?.token ? s : null;
+  } catch {
+    return null;
+  }
 }
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
@@ -62,46 +61,93 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [now, setNow] = useState(() => new Date());
   const stateRef = useRef<State | null>(null);
+  const revRef = useRef(0);
+  const sessionRef = useRef<Session | null>(null);
+  // 저장은 한 번에 하나씩: 앞 저장이 끝난 뒤 다음 저장을 보낸다.
+  const queue = useRef<Promise<void>>(Promise.resolve());
+  const pending = useRef(0);
 
-  useEffect(() => {
-    const s = load();
-    stateRef.current = s;
-    setState(s);
-    try {
-      const raw = localStorage.getItem(SESSION_KEY);
-      if (raw) setSession(JSON.parse(raw));
-    } catch {}
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === STATE_KEY && e.newValue) {
-        const next = JSON.parse(e.newValue) as State;
-        stateRef.current = next;
-        setState(next);
-      }
-    };
-    window.addEventListener("storage", onStorage);
-    const t = setInterval(() => setNow(new Date()), 15_000);
-    return () => {
-      window.removeEventListener("storage", onStorage);
-      clearInterval(t);
-    };
+  const headers = useCallback(() => {
+    const h: Record<string, string> = { "content-type": "application/json" };
+    if (sessionRef.current?.token) h.authorization = `Bearer ${sessionRef.current.token}`;
+    return h;
   }, []);
 
-  const commit = useCallback((fn: (s: State) => State) => {
-    const next = fn(stateRef.current!);
-    stateRef.current = next;
-    setState(next);
-    try {
-      localStorage.setItem(STATE_KEY, JSON.stringify(next));
-    } catch {}
-  }, []);
-
-  const saveSession = (s: Session | null) => {
+  const saveSession = useCallback((s: Session | null) => {
+    sessionRef.current = s;
     setSession(s);
     try {
       if (s) localStorage.setItem(SESSION_KEY, JSON.stringify(s));
       else localStorage.removeItem(SESSION_KEY);
     } catch {}
-  };
+  }, []);
+
+  const refresh = useCallback(async () => {
+    try {
+      const res = await fetch("/api/state", { headers: headers(), cache: "no-store" });
+      if (!res.ok) return;
+      const body = (await res.json()) as { rev: number; data: State; session: "ok" | "expired" | "none" };
+      if (body.session === "expired") saveSession(null);
+      if (pending.current > 0) return;
+      revRef.current = body.rev;
+      stateRef.current = body.data;
+      setState(body.data);
+    } catch {}
+  }, [headers, saveSession]);
+
+  useEffect(() => {
+    sessionRef.current = readSession();
+    setSession(sessionRef.current);
+    refresh();
+    const poll = setInterval(() => {
+      if (document.visibilityState === "visible") refresh();
+    }, POLL_MS);
+    const onFocus = () => refresh();
+    window.addEventListener("focus", onFocus);
+    const t = setInterval(() => setNow(new Date()), 15_000);
+    return () => {
+      clearInterval(poll);
+      clearInterval(t);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [refresh]);
+
+  const commit = useCallback(
+    (fn: (s: State) => State) => {
+      // 화면에는 바로 반영하고, 서버 저장이 충돌하면 최신 상태에 같은 변경을 다시 적용한다.
+      const optimistic = fn(stateRef.current!);
+      stateRef.current = optimistic;
+      setState(optimistic);
+      pending.current++;
+      queue.current = queue.current.then(async () => {
+        try {
+          let next = optimistic;
+          for (let i = 0; i < 4; i++) {
+            const res = await fetch("/api/state", { method: "PUT", headers: headers(), body: JSON.stringify({ rev: revRef.current, data: next }) });
+            if (res.ok) {
+              revRef.current = ((await res.json()) as { rev: number }).rev;
+              return;
+            }
+            if (res.status !== 409) {
+              if (res.status === 401) saveSession(null);
+              break;
+            }
+            const latest = (await res.json()) as { rev: number; data: State };
+            revRef.current = latest.rev;
+            next = fn(latest.data);
+            stateRef.current = next;
+            setState(next);
+          }
+        } catch {
+        } finally {
+          pending.current--;
+        }
+        // 저장하지 못했으면 서버 상태로 되돌린다.
+        await refresh();
+      });
+    },
+    [headers, refresh, saveSession],
+  );
 
   const store = useMemo<Store | null>(() => {
     if (!state) return null;
@@ -126,39 +172,30 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       state,
       session,
       now,
-      login(loginId, password) {
-        const s = get();
-        const found =
-          ([
-            ["advertiser", s.advertisers],
-            ["partner", s.partners],
-            ["admin", s.admins],
-          ] as const)
-            .map(([role, list]) => ({ role, user: (list as { id: string; loginId: string; password: string; status?: string }[]).find((u) => u.loginId === loginId) }))
-            .find((x) => x.user) ?? null;
-        if (!found?.user || found.user.password !== password) return { error: "아이디 또는 비밀번호가 맞지 않습니다." };
-        const status = found.user.status;
-        if (status === "pending") return { error: "가입 승인 대기 중입니다. 관리자가 승인하면 로그인할 수 있습니다." };
-        if (status && status !== "approved") return { error: "이용이 제한된 계정입니다. 1600-7628로 문의해 주세요." };
-        saveSession({ role: found.role, id: found.user.id });
-        return { role: found.role };
+      async login(loginId, password) {
+        try {
+          const res = await fetch("/api/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ loginId, password }) });
+          const body = (await res.json()) as { error?: string; role: Session["role"]; id: string; token: string };
+          if (!res.ok || body.error) return { error: body.error ?? "로그인하지 못했습니다." };
+          saveSession({ role: body.role, id: body.id, token: body.token });
+          await refresh();
+          return { role: body.role };
+        } catch {
+          return { error: "서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요." };
+        }
       },
       logout() {
         saveSession(null);
+        refresh();
       },
-      signupAdvertiser(a) {
-        const s = get();
-        if (loginIdTaken(a.loginId)) return "이미 사용 중인 아이디입니다.";
-        if (!s.partners.some((p) => p.code === a.referrer.trim().toUpperCase() && p.status === "approved"))
-          return "등록되지 않은 추천인 아이디입니다. 담당 영업자에게 확인해 주세요.";
-        commit((s) => ({
-          ...s,
-          advertisers: [
-            ...s.advertisers,
-            { ...a, referrer: a.referrer.trim().toUpperCase(), id: uid("adv"), status: "pending", receiving: false, createdAt: new Date().toISOString() },
-          ],
-        }));
-        return null;
+      async signupAdvertiser(a) {
+        try {
+          const res = await fetch("/api/signup", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(a) });
+          if (res.ok) return null;
+          return ((await res.json()) as { error?: string }).error ?? "가입 신청을 보내지 못했습니다.";
+        } catch {
+          return "서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.";
+        }
       },
       createPartner(p) {
         if (loginIdTaken(p.loginId)) return "이미 사용 중인 아이디입니다.";
@@ -277,9 +314,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           phone: `010-${n()}-${n()}`,
           car,
           brand: car.split(" ")[0],
-          months: pick([36, 48, 60]),
-          region: pick(["서울 마포구", "경기 고양시", "서울 강서구", "인천 남동구"]),
-          site: pick(get().settings.connections.filter((c) => c.type === "landing")).name,
+          memo: pick(["", "48개월 무보증 희망", "법인 명의 문의", "빠른 출고 원함"]) || undefined,
+          site: pick(["메타", "인스타그램", "페이스북"]),
+          pageName: pick(["장기렌트 특가", "신차 즉시출고", "전기차 장기렌트"]),
+          term: pick(["그랜저_특가_01", "즉시출고_영상_02", "EV_혜택_03"]),
           createdAt: new Date().toISOString(),
           status: "waiting",
           ...partial,
@@ -335,10 +373,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         });
       },
       resetDemo() {
-        commit(() => seed());
+        fetch("/api/reset", { method: "POST", headers: headers() }).then(() => refresh());
       },
     };
-  }, [state, session, now, commit]);
+  }, [state, session, now, commit, headers, refresh, saveSession]);
 
   if (!store) return <div className="min-h-screen bg-white" />;
   return <Ctx.Provider value={store}>{children}</Ctx.Provider>;
