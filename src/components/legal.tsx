@@ -14,10 +14,10 @@ export function LegalPage({ title, updated, intro, sections }: { title: string; 
     <div className="min-h-screen bg-white">
       <header className="border-b border-line">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:h-[68px] sm:px-6">
-          <Link href="/login"><Logo size={22} /></Link>
+          <Link href="/login" className="py-2"><Logo size={22} /></Link>
           <nav className="flex gap-4 text-sm font-semibold text-sub">
-            <Link href="/terms" className="hover:text-ink">이용약관</Link>
-            <Link href="/privacy" className="hover:text-ink">개인정보처리방침</Link>
+            <Link href="/terms" className="py-2.5 hover:text-ink">이용약관</Link>
+            <Link href="/privacy" className="py-2.5 hover:text-ink">개인정보처리방침</Link>
           </nav>
         </div>
       </header>
@@ -28,9 +28,9 @@ export function LegalPage({ title, updated, intro, sections }: { title: string; 
 
         <nav aria-label="목차" className="mt-8 rounded-2xl bg-page p-5">
           <p className="mb-2 text-[13px] font-bold text-sub">목차</p>
-          <ol className="grid gap-1 text-sm sm:grid-cols-2">
+          <ol className="grid text-sm sm:grid-cols-2">
             {sections.map(([h], i) => (
-              <li key={h}><a href={`#s${i + 1}`} className="text-sub hover:text-brand">{h}</a></li>
+              <li key={h}><a href={`#s${i + 1}`} className="block py-1.5 text-sub hover:text-brand">{h}</a></li>
             ))}
           </ol>
         </nav>

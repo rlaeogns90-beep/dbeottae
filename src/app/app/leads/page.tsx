@@ -48,7 +48,7 @@ export default function LeadsPage() {
               key={f}
               onClick={() => setFilter(f)}
               className={cx(
-                "h-8 shrink-0 rounded-full px-3 text-[13px] font-semibold",
+                "h-9 shrink-0 rounded-full px-3.5 text-[13px] font-semibold",
                 filter === f ? "bg-ink text-white" : "border border-line bg-white text-sub",
               )}
             >

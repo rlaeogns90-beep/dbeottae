@@ -37,7 +37,7 @@ export default function LeadDetail() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <Link href="/app/leads" className="mb-4 inline-flex items-center gap-0.5 text-sm text-sub hover:text-ink">
+      <Link href="/app/leads" className="mb-2 inline-flex items-center gap-0.5 py-2 text-sm text-sub hover:text-ink">
         <ChevronLeft size={18} /> DB 관리
       </Link>
 

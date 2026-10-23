@@ -63,7 +63,7 @@ export default function AdvertiserHome() {
           <p className="text-[13px] text-sub">예치금</p>
           <p className="tabular mt-1 text-xl font-bold">{won(balance)}</p>
           <p className="mt-1 text-xs text-mute">약 {left}건 받을 수 있음</p>
-          <Link href="/app/wallet"><Button variant="secondary" size="sm" className="mt-3 w-full">충전하기</Button></Link>
+          <Link href="/app/wallet" className="mt-3 flex h-10 w-full items-center justify-center rounded-lg border border-line bg-white text-sm font-semibold hover:bg-page">충전하기</Link>
         </Card>
         <Card className="p-5">
           <p className="text-[13px] text-sub">오늘 받은 DB</p>
@@ -84,7 +84,7 @@ export default function AdvertiserHome() {
       <Card>
         <CardHeader
           title="최근 받은 DB"
-          action={<Link href="/app/leads" className="text-[13px] font-semibold text-brand">전체 보기</Link>}
+          action={<Link href="/app/leads" className="-my-2 py-2 text-[13px] font-semibold text-brand">전체 보기</Link>}
         />
         {mine.length === 0 ? (
           <Empty title="아직 받은 DB가 없습니다" desc="수신을 켜 두면 DB가 들어오는 즉시 여기에 표시됩니다." />

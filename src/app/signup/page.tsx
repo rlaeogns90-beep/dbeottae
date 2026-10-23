@@ -70,7 +70,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="mx-auto w-full max-w-md px-4 py-10">
-        <Link href="/login"><Logo /></Link>
+        <Link href="/login" className="inline-block py-2"><Logo /></Link>
         <h1 className="mt-6 text-[22px] font-bold">광고주 가입 신청</h1>
         <p className="mt-1 text-sm text-sub">가입 후 관리자 승인이 끝나면 로그인할 수 있습니다.</p>
 
@@ -140,13 +140,13 @@ export default function SignupPage() {
           </section>
 
           <section className="space-y-2.5">
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={f.agreeTerms} onChange={set("agreeTerms")} className="h-4 w-4 accent-[#2659d9]" />
-              <span><span className="text-bad">[필수]</span> 이용약관 동의 (예치금 환불 불가 포함) <a href="/terms" target="_blank" rel="noreferrer" className="font-semibold text-brand underline underline-offset-2">보기</a></span>
+            <label className="flex items-center gap-2.5 py-1.5 text-sm">
+              <input type="checkbox" checked={f.agreeTerms} onChange={set("agreeTerms")} className="h-5 w-5 shrink-0 accent-[#2659d9]" />
+              <span><span className="text-bad">[필수]</span> 이용약관 동의 (예치금 환불 불가 포함) <a href="/terms" target="_blank" rel="noreferrer" className="py-2 font-semibold text-brand underline underline-offset-2">보기</a></span>
             </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={f.agreePrivacy} onChange={set("agreePrivacy")} className="h-4 w-4 accent-[#2659d9]" />
-              <span><span className="text-bad">[필수]</span> 개인정보 수집·이용 동의 <a href="/privacy" target="_blank" rel="noreferrer" className="font-semibold text-brand underline underline-offset-2">보기</a></span>
+            <label className="flex items-center gap-2.5 py-1.5 text-sm">
+              <input type="checkbox" checked={f.agreePrivacy} onChange={set("agreePrivacy")} className="h-5 w-5 shrink-0 accent-[#2659d9]" />
+              <span><span className="text-bad">[필수]</span> 개인정보 수집·이용 동의 <a href="/privacy" target="_blank" rel="noreferrer" className="py-2 font-semibold text-brand underline underline-offset-2">보기</a></span>
             </label>
           </section>
 

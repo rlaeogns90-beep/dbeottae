@@ -73,7 +73,7 @@ export default function WalletPage() {
                 <p className="tabular mt-0.5 font-semibold">{state.settings.bankAccount.bank} {state.settings.bankAccount.number} · {state.settings.bankAccount.holder}</p>
               </div>
               <label className="flex items-start gap-2 text-[13px] leading-relaxed text-sub">
-                <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 h-4 w-4 accent-[#2659d9]" />
+                <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-[#2659d9]" />
                 충전한 예치금은 환불되지 않으며, 불량 승인 건만 예치금으로 환원되는 것에 동의합니다.
               </label>
               {msg && <p className={cx("text-[13px]", msg.ok ? "text-brand" : "text-bad")}>{msg.text}</p>}

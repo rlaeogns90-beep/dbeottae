@@ -16,7 +16,7 @@ export function Button({ variant = "primary", size = "md", className, ...props }
       {...props}
       className={cx(
         "inline-flex items-center justify-center gap-1.5 rounded-lg font-semibold whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-40",
-        size === "sm" && "h-8 px-3 text-[13px]",
+        size === "sm" && "h-9 px-3 text-[13px]",
         size === "md" && "h-10 px-4 text-sm",
         size === "lg" && "h-12 px-5 text-[15px]",
         variant === "primary" && "bg-brand text-white hover:bg-brand-dark",
@@ -138,7 +138,8 @@ export function Toggle({ on, onChange, disabled }: { on: boolean; onChange: (v: 
       disabled={disabled}
       onClick={() => onChange(!on)}
       className={cx(
-        "relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-40",
+        // 손가락으로 누르기 쉽게 보이는 크기보다 넓게 눌리도록 바깥 영역(after)을 둔다.
+        "relative h-7 w-12 shrink-0 rounded-full transition-colors after:absolute after:-inset-2.5 after:content-[''] disabled:opacity-40",
         on ? "bg-brand" : "bg-[#d1d6db]",
       )}
     >

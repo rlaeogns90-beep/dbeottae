@@ -135,13 +135,13 @@ export default function MainPage() {
               <CallButton solid />
               <KakaoButton />
             </div>
-            <a href={`tel:${COMPANY.tel.replace(/-/g, "")}`} aria-label={`고객센터 ${COMPANY.tel} 전화 걸기`} className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-brand sm:hidden">
+            <a href={`tel:${COMPANY.tel.replace(/-/g, "")}`} aria-label={`고객센터 ${COMPANY.tel} 전화 걸기`} className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand sm:hidden">
               <Phone size={17} className="text-white" strokeWidth={2.4} />
             </a>
-            <a href={COMPANY.kakaoUrl} aria-label="카카오톡 상담" className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#FEE500] sm:hidden">
+            <a href={COMPANY.kakaoUrl} target="_blank" rel="noreferrer" aria-label="카카오톡 상담" className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#FEE500] sm:hidden">
               <KakaoIcon size={20} />
             </a>
-            <Link href="/signup" className="inline-flex h-9 items-center rounded-lg bg-ink px-3 text-sm font-bold text-white hover:bg-[#333d4b] sm:h-10 sm:px-4">
+            <Link href="/signup" className="inline-flex h-10 items-center rounded-lg bg-ink px-3 text-sm font-bold text-white hover:bg-[#333d4b] sm:px-4">
               가입 신청
             </Link>
           </div>
@@ -211,7 +211,7 @@ export default function MainPage() {
             <button type="submit" disabled={busy} className="h-[52px] rounded-[10px] bg-brand text-base font-bold text-white hover:bg-brand-dark disabled:opacity-60">{busy ? "확인 중…" : "로그인"}</button>
             <div className="flex justify-between text-sm">
               <span className="text-[#6b7684]">처음 오셨나요?</span>
-              <Link href="/signup" className="font-bold text-brand">광고주 가입 신청</Link>
+              <Link href="/signup" className="-my-2.5 py-2.5 font-bold text-brand">광고주 가입 신청</Link>
             </div>
           </form>
 
@@ -335,7 +335,7 @@ export default function MainPage() {
                   </div>
                   <div className="mt-auto flex items-center justify-between gap-3 border-t border-[#dbe5fb] pt-4">
                     <span className="tabular text-sm font-bold text-brand-dark">건당 40,000원 <span className="font-medium text-sub">VAT 별도</span></span>
-                    <Link href="/signup" className="text-sm font-bold text-brand hover:text-brand-dark">지금 받기 →</Link>
+                    <Link href="/signup" className="-my-2.5 py-2.5 text-sm font-bold text-brand hover:text-brand-dark">지금 받기 →</Link>
                   </div>
                 </div>
               ) : (
@@ -388,12 +388,12 @@ export default function MainPage() {
           <h2 className="text-[26px] leading-tight font-extrabold tracking-[-0.02em] sm:text-4xl">자주 묻는 질문</h2>
           <div className="rounded-2xl border border-line bg-white px-5 sm:px-7">
             {faqs.map(([q, a], i) => (
-              <details key={q} open={i === 0} className={`group py-4 sm:py-5 ${i < faqs.length - 1 ? "border-b border-line" : ""}`}>
-                <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-base font-bold sm:text-lg [&::-webkit-details-marker]:hidden">
+              <details key={q} open={i === 0} className={`group ${i < faqs.length - 1 ? "border-b border-line" : ""}`}>
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-4 py-4 text-base font-bold sm:py-5 sm:text-lg [&::-webkit-details-marker]:hidden">
                   {q}
                   <span aria-hidden="true" className="shrink-0 text-xl leading-none text-[#6b7684] transition-transform group-open:rotate-45">+</span>
                 </summary>
-                <p className="mt-3 text-[15px] leading-relaxed text-sub sm:text-base">{a}</p>
+                <p className="-mt-1 pb-4 text-[15px] leading-relaxed text-sub sm:pb-5 sm:text-base">{a}</p>
               </details>
             ))}
           </div>

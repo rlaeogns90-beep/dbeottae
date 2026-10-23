@@ -85,8 +85,8 @@ export function SiteFooter() {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-4 text-xs sm:px-6">
           <p className="text-mute">© {COMPANY.name}. All rights reserved.</p>
           <nav className="flex gap-4 text-sub">
-            <a href="/terms" className="hover:text-ink">이용약관</a>
-            <a href="/privacy" className="font-bold text-ink">개인정보처리방침</a>
+            <a href="/terms" className="-my-3 py-3 hover:text-ink">이용약관</a>
+            <a href="/privacy" className="-my-3 py-3 font-bold text-ink">개인정보처리방침</a>
           </nav>
         </div>
       </div>
