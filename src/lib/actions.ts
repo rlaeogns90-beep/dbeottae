@@ -37,6 +37,40 @@ const MASTER_ACTIONS = new Set<Action["type"]>(["createAdmin", "deleteAdmin"]);
 
 export const MIN_PASSWORD = 8;
 
+const CONSULT_VALUES = ["대기", "견적발송", "계약", "관리", "계약취소"];
+export const LOGIN_ID = /^[a-zA-Z0-9_]{4,20}$/;
+const str = (v: unknown, max: number) => typeof v === "string" && v.length <= max;
+const money = (v: unknown) => typeof v === "number" && Number.isInteger(v) && Math.abs(v) <= 100_000_000;
+
+/** 값의 형식과 길이 검사. 화면을 거치지 않고 직접 보낸 요청도 여기서 걸러진다. */
+function invalid(a: Action): string | null {
+  switch (a.type) {
+    case "setReceiving":
+      return typeof a.on === "boolean" ? null : "잘못된 요청입니다.";
+    case "requestDeposit":
+      return money(a.amount) && a.amount > 0 && str(a.depositor, 30) && a.depositor.trim() ? null : "입금 금액과 입금자명을 확인해 주세요.";
+    case "updateAssignment":
+      if (a.patch.consult !== undefined && !CONSULT_VALUES.includes(a.patch.consult)) return "잘못된 상담 상태입니다.";
+      return a.patch.memo === undefined || str(a.patch.memo, 2000) ? null : "메모는 2,000자까지 쓸 수 있습니다.";
+    case "reportDefect":
+      return a.reason === "결번" && (a.fileName === undefined || str(a.fileName, 200)) ? null : "잘못된 요청입니다.";
+    case "handleDefect":
+      return a.rejectReason === undefined || str(a.rejectReason, 200) ? null : "반려 사유는 200자까지 쓸 수 있습니다.";
+    case "adjustWallet":
+      return money(a.amount) && str(a.note, 200) ? null : "조정 금액과 사유를 확인해 주세요.";
+    case "simulateLead":
+      return str(a.lead.name, 50) && str(a.lead.phone, 20) && str(a.lead.car ?? "", 100) ? null : "잘못된 요청입니다.";
+    case "createPartner":
+    case "createAdmin":
+      if (!LOGIN_ID.test(a.loginId)) return "아이디는 영문·숫자·밑줄 4~20자로 정해 주세요.";
+      return str(a.name, 50) && str(a.password, 100) && (a.type === "createAdmin" || str(a.phone, 20)) ? null : "입력값을 확인해 주세요.";
+    case "setPassword":
+      return str(a.password, 100) ? null : "비밀번호가 너무 깁니다.";
+    default:
+      return null;
+  }
+}
+
 const loginIdTaken = (s: State, loginId: string) =>
   [...s.advertisers, ...s.partners, ...s.admins].some((u) => u.loginId === loginId);
 
@@ -59,7 +93,7 @@ function denied(s: State, who: Session, a: Action): string | null {
 }
 
 export function runAction(s: State, who: Session, a: Action, now = new Date()): ActionResult {
-  const no = denied(s, who, a);
+  const no = denied(s, who, a) ?? invalid(a);
   if (no) return { error: no };
   const at = now.toISOString();
   const ok = (state: State): ActionResult => ({ state });
@@ -160,11 +194,11 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
       return ok(routeLead(s, { ...a.lead, id: uid("ld"), createdAt: at, status: "waiting" }, now));
     case "updateAdvertiser": {
       // 아이디·비밀번호·가입 정보는 이 작업으로 바꾸지 않는다.
-      const patch = { ...a.patch };
-      delete patch.id;
-      delete patch.password;
-      delete patch.loginId;
-      delete patch.createdAt;
+      // 관리자가 바꿀 수 있는 항목만 받는다 (아이디·비밀번호·가입 정보는 이 작업으로 바꾸지 않는다).
+      const allowed = ["name", "phone", "company", "referrer", "tax", "receiving", "offAt", "offBy"] as const;
+      const patch: Partial<Advertiser> = {};
+      for (const k of allowed) if (k in a.patch) (patch as Record<string, unknown>)[k] = a.patch[k];
+      if ((patch.name !== undefined && !str(patch.name, 50)) || (patch.phone !== undefined && !str(patch.phone, 20))) return { error: "입력값을 확인해 주세요." };
       return ok({ ...s, advertisers: s.advertisers.map((x) => (x.id === a.id ? { ...x, ...patch } : x)) });
     }
     case "adjustWallet":
@@ -207,7 +241,9 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
       return ok({ ...s, admins: s.admins.filter((x) => x.id !== a.id || x.master) });
     case "setPassword": {
       if (a.password.length < MIN_PASSWORD) return { error: `비밀번호는 ${MIN_PASSWORD}자 이상이어야 합니다.` };
-      const set = <T extends { id: string; password: string }>(list: T[]) => list.map((u) => (u.id === a.id ? { ...u, password: a.password } : u));
+      // 비밀번호를 바꾸면 토큰 버전을 올려 그 계정의 기존 로그인을 모두 끊는다.
+      const set = <T extends { id: string; password: string; tv?: number }>(list: T[]) =>
+        list.map((u) => (u.id === a.id ? { ...u, password: a.password, tv: (u.tv ?? 0) + 1 } : u));
       if (a.kind === "advertiser") return ok({ ...s, advertisers: set(s.advertisers) });
       if (a.kind === "partner") return ok({ ...s, partners: set(s.partners) });
       return ok({ ...s, admins: set(s.admins) });

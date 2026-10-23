@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  Bell, ClipboardCheck, FileWarning, Home, Inbox, KeyRound, Layers, LogOut, Plug, Settings, ShieldCheck,
+  Bell, ClipboardCheck, FileWarning, Home, Inbox, KeyRound, Layers, LogOut, Plug, ScrollText, Settings, ShieldCheck,
   User, Users, Wallet, Briefcase, Clock3, Radio,
 } from "lucide-react";
 import Link from "next/link";
@@ -159,7 +159,7 @@ export function PartnerShell({ children }: { children: React.ReactNode }) {
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const admin = useAdmin();
-  const { state } = useStore();
+  const { state, alerts } = useStore();
   const path = usePathname();
   if (!admin) return null;
 
@@ -199,6 +199,13 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         { href: "/admin/settings", label: "배정 설정", icon: Settings },
         { href: "/admin/integrations", label: "외부 연동·알림톡", icon: Plug },
         ...(admin.master ? [{ href: "/admin/accounts", label: "계정 관리", icon: KeyRound }] : []),
+      ],
+    },
+    {
+      title: "보안",
+      items: [
+        { href: "/admin/alerts", label: "알림", icon: Bell, count: alerts.length },
+        ...(admin.master ? [{ href: "/admin/logs", label: "보안 기록", icon: ScrollText }] : []),
       ],
     },
   ];
@@ -249,11 +256,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-2 lg:hidden">
               <Logo />
             </div>
-            <div className="hidden items-center gap-1.5 text-sm text-sub lg:flex">
-              <Bell size={16} className="text-mute" />
-              {waiting + pendingMembers + pendingDeposits + pendingDefects > 0
-                ? `처리할 일 ${waiting + pendingMembers + pendingDeposits + pendingDefects}건`
-                : "처리할 일이 없습니다"}
+            <div className="hidden items-center gap-4 text-sm text-sub lg:flex">
+              <span className="flex items-center gap-1.5">
+                <ClipboardCheck size={16} className="text-mute" />
+                {waiting + pendingMembers + pendingDeposits + pendingDefects > 0
+                  ? `처리할 일 ${waiting + pendingMembers + pendingDeposits + pendingDefects}건`
+                  : "처리할 일이 없습니다"}
+              </span>
+              <Link href="/admin/alerts" className={cx("flex items-center gap-1.5", alerts.length ? "font-semibold text-bad" : "")}>
+                <Bell size={16} className={alerts.length ? "text-bad" : "text-mute"} />
+                {alerts.length ? `새 알림 ${alerts.length}건` : "새 알림 없음"}
+              </Link>
             </div>
             <UserMenu name={admin.name} />
           </div>
@@ -273,7 +286,24 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
         </header>
-        <main className="mx-auto max-w-6xl px-4 py-6 lg:px-8">{children}</main>
+        <main className="mx-auto max-w-6xl px-4 py-6 lg:px-8">
+          {alerts.length > 0 && path !== "/admin/alerts" && (
+            <Link
+              href="/admin/alerts"
+              className={cx(
+                "mb-4 flex items-center gap-2.5 rounded-xl border px-4 py-3 text-sm",
+                alerts.some((a) => a.level === "error") ? "border-bad/30 bg-bad-soft text-bad" : "border-warn/30 bg-warn-soft text-warn",
+              )}
+            >
+              <Bell size={16} className="shrink-0" />
+              <span className="min-w-0 flex-1 truncate">
+                <b>{alerts[0].source}</b> · {alerts[0].message}
+              </span>
+              <span className="shrink-0 font-semibold">{alerts.length > 1 ? `외 ${alerts.length - 1}건 ` : ""}확인하기 →</span>
+            </Link>
+          )}
+          {children}
+        </main>
       </div>
     </div>
   );

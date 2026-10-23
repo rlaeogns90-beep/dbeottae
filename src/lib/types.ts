@@ -17,6 +17,8 @@ export interface Advertiser {
   /** 현금영수증 (휴대전화번호로 발급, 주민번호는 받지 않음) */
   cash?: { name: string; phone: string };
   status: MemberStatus;
+  /** 로그인 토큰 버전: 비밀번호를 바꾸면 올라가서 기존 로그인이 끊긴다 */
+  tv?: number;
   receiving: boolean;
   offAt?: string;
   offBy?: "self" | "auto" | "admin";
@@ -32,6 +34,7 @@ export interface Partner {
   phone: string;
   code: string;
   status: MemberStatus;
+  tv?: number;
   createdAt: string;
 }
 
@@ -41,6 +44,7 @@ export interface Admin {
   password: string;
   name: string;
   master: boolean;
+  tv?: number;
   createdAt: string;
 }
 

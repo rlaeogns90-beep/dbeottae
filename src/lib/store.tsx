@@ -14,10 +14,25 @@ const POLL_MS = 4000;
 
 type Result = string | null;
 
+/** 관리자 화면 알림 (서버 alerts 표 한 줄) */
+export interface AdminAlert {
+  id: number;
+  at: string;
+  level: "error" | "warn" | "info";
+  source: string;
+  message: string;
+  read_at: string | null;
+}
+
 interface Store {
   state: State;
   session: Session | null;
   now: Date;
+  /** 관리자에게만: 읽지 않은 알림 */
+  alerts: AdminAlert[];
+  /** 로그인 토큰을 붙여 관리자 API를 부른다 */
+  api: <T>(path: string, body?: unknown) => Promise<{ ok: boolean; data: T }>;
+  markAlertsRead: (ids: number[] | "all") => Promise<void>;
   /** 아이디 하나로 로그인하고, 계정 종류(광고주·영업자·관리자)에 맞는 화면으로 보낸다. */
   login: (loginId: string, password: string) => Promise<{ error: string } | { role: Session["role"] }>;
   logout: () => void;
@@ -67,6 +82,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<State | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [now, setNow] = useState(() => new Date());
+  const [alerts, setAlerts] = useState<AdminAlert[]>([]);
   const stateRef = useRef<State | null>(null);
   const sessionRef = useRef<Session | null>(null);
   // 작업은 한 번에 하나씩 보낸다. 보내는 중에는 받아온 상태로 화면을 덮지 않는다.
@@ -92,8 +108,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await fetch("/api/state", { headers: headers(), cache: "no-store" });
       if (!res.ok) return;
-      const body = (await res.json()) as { data: State; session: "ok" | "expired" | "none" };
+      const body = (await res.json()) as { data: State; alerts?: AdminAlert[]; session: "ok" | "expired" | "none" };
       if (body.session === "expired") saveSession(null);
+      setAlerts(body.alerts ?? []);
       if (pending.current > 0) return;
       stateRef.current = body.data;
       setState(body.data);
@@ -150,10 +167,24 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const run = (a: Action) => {
       act(a);
     };
+    const api = async <T,>(path: string, body?: unknown) => {
+      try {
+        const res = await fetch(path, body === undefined ? { headers: headers(), cache: "no-store" } : { method: "POST", headers: headers(), body: JSON.stringify(body) });
+        return { ok: res.ok, data: (await res.json()) as T };
+      } catch {
+        return { ok: false, data: { error: OFFLINE } as T };
+      }
+    };
     return {
       state,
       session,
       now,
+      alerts,
+      api,
+      async markAlertsRead(ids) {
+        await api("/api/admin/alerts", { ids });
+        await refresh();
+      },
       async login(loginId, password) {
         try {
           const res = await fetch("/api/login", { method: "POST", headers: json, body: JSON.stringify({ loginId, password }) });
@@ -182,8 +213,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       async changeMyPassword(current, next) {
         try {
           const res = await fetch("/api/password", { method: "POST", headers: headers(), body: JSON.stringify({ current, next }) });
-          if (res.ok) return null;
-          return ((await res.json()) as { error?: string }).error ?? "비밀번호를 바꾸지 못했습니다.";
+          const body = (await res.json()) as { error?: string; token?: string };
+          if (!res.ok) return body.error ?? "비밀번호를 바꾸지 못했습니다.";
+          // 다른 기기의 로그인은 끊기고, 지금 기기는 새 토큰으로 이어간다.
+          if (body.token && sessionRef.current) saveSession({ ...sessionRef.current, token: body.token });
+          return null;
         } catch {
           return OFFLINE;
         }
@@ -241,7 +275,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           .finally(() => refresh());
       },
     };
-  }, [state, session, now, act, headers, refresh, saveSession]);
+  }, [state, session, now, alerts, act, headers, refresh, saveSession]);
 
   if (!store) return <div className="min-h-screen bg-white" />;
   return <Ctx.Provider value={store}>{children}</Ctx.Provider>;

@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { BackupsCard } from "@/components/backups";
 import { MyPasswordCard } from "@/components/password";
+import { useAdmin } from "@/components/shells";
 import { Button, Card, CardHeader, ConfirmButton, Field, Input, Notice, PageHeader, Toggle } from "@/components/ui";
 import { won } from "@/lib/format";
 import { useStore } from "@/lib/store";
 
 export default function SettingsPage() {
+  const me = useAdmin()!;
   const { state, updateSettings, resetDemo } = useStore();
   const s = state.settings;
   const [bank, setBank] = useState(s.bankAccount);
@@ -73,6 +76,8 @@ export default function SettingsPage() {
           </div>
         </form>
       </Card>
+
+      <BackupsCard master={me.master} />
 
       <MyPasswordCard />
 

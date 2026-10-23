@@ -11,16 +11,35 @@ export const isProduction = process.env.VERCEL_ENV === "production";
 
 const url = isProduction ? process.env.DATABASE_URL : process.env.DEV_DATABASE_URL;
 if (!url) throw new Error(isProduction ? "DATABASE_URL이 없습니다." : "시험용 DEV_DATABASE_URL이 없습니다. 운영 DB에는 연결하지 않습니다.");
-const sql = neon(url);
+export const sql = neon(url);
 
 let ready: Promise<unknown> | null = null;
-const ensureTable = () =>
-  (ready ??= sql`create table if not exists app_state (
-    id int primary key,
-    rev int not null,
-    data jsonb not null,
-    updated_at timestamptz not null default now()
-  )`);
+/** 필요한 표를 처음 한 번 만든다: 상태, 요청 횟수, 작업 기록, 관리자 알림, 백업 */
+export const ensureTable = () =>
+  (ready ??= (async () => {
+    await sql`create table if not exists app_state (
+      id int primary key,
+      rev int not null,
+      data jsonb not null,
+      updated_at timestamptz not null default now()
+    )`;
+    await sql`create table if not exists rate_hits (key text not null, at timestamptz not null default now())`;
+    await sql`create index if not exists rate_hits_key_at on rate_hits (key, at)`;
+    await sql`create table if not exists audit_log (
+      id bigserial primary key, at timestamptz not null default now(),
+      actor text not null, role text not null, action text not null, detail text not null default '', ip text not null default ''
+    )`;
+    await sql`create table if not exists alerts (
+      id bigserial primary key, at timestamptz not null default now(),
+      level text not null, source text not null, message text not null, read_at timestamptz
+    )`;
+    await sql`create table if not exists app_state_backups (
+      id bigserial primary key, at timestamptz not null default now(), rev int not null, data jsonb not null
+    )`;
+  })().catch((e) => {
+    ready = null; // 실패하면 다음 요청에서 다시 시도
+    throw e;
+  }));
 
 const randomKey = (prefix: string) => `${prefix}_${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}`;
 
