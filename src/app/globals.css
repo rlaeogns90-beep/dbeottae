@@ -14,6 +14,9 @@
   --color-brand-dark: #1d47b3;
   --color-brand-soft: #edf2fd;
   --color-accent: #f26b1d;
+  /* 로고 색: DB(파랑) · 어때(남색) */
+  --color-logo-blue: #1e5eff;
+  --color-logo-navy: #0a1f44;
 
   --color-ok: #127a4b;
   --color-ok-soft: #e7f6ee;

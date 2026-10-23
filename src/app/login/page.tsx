@@ -64,7 +64,7 @@ function PhoneMock() {
   const Card = ({ time, children, strong }: { time: string; children: React.ReactNode; strong?: boolean }) => (
     <div className={`flex flex-col gap-1.5 rounded-[18px] bg-white p-4 ${strong ? "shadow-[0_4px_12px_rgba(25,31,40,0.06)]" : ""}`}>
       <div className="flex justify-between text-xs text-[#6b7684]">
-        <span className="font-bold text-ink"><span className="text-accent">DB</span>어때</span>
+        <span className="font-bold text-logo-navy"><span className="text-logo-blue">DB</span>어때</span>
         <span>{time}</span>
       </div>
       {children}
@@ -149,7 +149,7 @@ export default function MainPage() {
           <h1 className="text-[32px] leading-[1.25] sm:text-[40px] font-extrabold tracking-[-0.03em] text-balance md:text-[56px]">
             경쟁 전화 없는 DB,
             <br />
-            계약률 높은 <span className="text-accent">DB어때</span>
+            계약률 높은 <span className="text-logo-blue">DB</span><span className="text-logo-navy">어때</span>
           </h1>
           <p className="max-w-[34em] text-base leading-relaxed text-sub sm:text-[19px]">
             출처 확실 · 1:1 단독 · 건당 결제. 고객이 신청하는 순간, 단 한 명의 영업사원에게만 10초 안에 카카오 알림톡으로 보냅니다.
