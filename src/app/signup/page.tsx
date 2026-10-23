@@ -146,7 +146,7 @@ export default function SignupPage() {
             </label>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={f.agreePrivacy} onChange={set("agreePrivacy")} className="h-4 w-4 accent-[#2659d9]" />
-              <span><span className="text-bad">[필수]</span> 개인정보 수집·이용 및 국외 이전 동의 <a href="/privacy" target="_blank" rel="noreferrer" className="font-semibold text-brand underline underline-offset-2">보기</a></span>
+              <span><span className="text-bad">[필수]</span> 개인정보 수집·이용 동의 <a href="/privacy" target="_blank" rel="noreferrer" className="font-semibold text-brand underline underline-offset-2">보기</a></span>
             </label>
           </section>
 
