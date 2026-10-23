@@ -132,11 +132,11 @@ export default function MainPage() {
           </div>
           <div className="flex items-center gap-1.5 sm:gap-2">
             <div className="hidden gap-2 sm:flex">
-              <CallButton />
+              <CallButton solid />
               <KakaoButton />
             </div>
-            <a href={`tel:${COMPANY.tel.replace(/-/g, "")}`} aria-label={`고객센터 ${COMPANY.tel} 전화 걸기`} className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#d1d6db] sm:hidden">
-              <Phone size={17} className="text-brand" strokeWidth={2.4} />
+            <a href={`tel:${COMPANY.tel.replace(/-/g, "")}`} aria-label={`고객센터 ${COMPANY.tel} 전화 걸기`} className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-brand sm:hidden">
+              <Phone size={17} className="text-white" strokeWidth={2.4} />
             </a>
             <a href={COMPANY.kakaoUrl} aria-label="카카오톡 상담" className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-[#FEE500] sm:hidden">
               <KakaoIcon size={20} />
@@ -157,14 +157,16 @@ export default function MainPage() {
             계약률 높은 <span className="text-logo-blue">DB</span><span className="text-logo-navy">어때</span>
           </h1>
           <p className="max-w-[34em] text-base leading-relaxed text-sub sm:text-[19px]">
-            출처 확실 · 1:1 단독 · 건당 결제. 고객이 신청하는 순간, 단 한 명의 영업사원에게만 10초 안에 카카오 알림톡으로 보냅니다.
+            출처 확실 · 1:1 단독 · 건당 결제. 고객이 신청하는 순간,
+            <br />
+            단 한 명의 광고주에게만 10초 안에 카카오 알림톡으로 보냅니다.
           </p>
-          <div className="flex flex-wrap items-end gap-x-5 gap-y-2 rounded-2xl border border-line px-5 py-5 sm:px-7 sm:py-6">
+          <div className="flex flex-wrap items-end gap-x-5 gap-y-2 rounded-2xl bg-brand px-5 py-5 text-white shadow-[0_12px_28px_rgba(38,89,217,0.25)] sm:px-7 sm:py-6">
             <div className="flex flex-col gap-1">
-              <span className="text-[13px] font-bold text-sub sm:text-sm">신차 장기렌트 단독 실시간 DB 1건</span>
+              <span className="text-[13px] font-bold text-white/80 sm:text-sm">신차 장기렌트 단독 실시간 DB 1건</span>
               <span className="tabular text-[38px] leading-none sm:text-[44px] font-extrabold tracking-[-0.03em]">40,000원</span>
             </div>
-            <span className="pb-1 text-sm text-[#6b7684] sm:text-[15px]">VAT 별도 · 패키지 없음 · 받은 만큼만 차감</span>
+            <span className="pb-1 text-sm text-white/80 sm:text-[15px]">VAT 별도 · 패키지 없음 · 받은 만큼만 차감</span>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:hidden">
             <a href="#login" onClick={scrollTo("login")} className="inline-flex h-12 items-center justify-center rounded-[10px] border border-[#d1d6db] text-[15px] font-bold">

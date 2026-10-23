@@ -9,7 +9,7 @@ export const COMPANY = {
   bizNo: "618-44-01013",
   address: "인천광역시 연수구 송도미래로11번길 27, A동 15층 1501~1502호",
   kakaoChannel: "마케팅을다루다",
-  kakaoUrl: "https://pf.kakao.com/_QxnAjG",
+  kakaoUrl: "https://pf.kakao.com/_QxnAjG/chat",
 };
 
 export function KakaoIcon({ size = 18 }: { size?: number }) {
@@ -77,7 +77,7 @@ export function SiteFooter() {
           </p>
           <div className="grid gap-2 sm:flex sm:flex-wrap">
             <CallButton solid className="h-11 justify-center" />
-            <KakaoButton label={`카카오톡 채널 ${COMPANY.kakaoChannel}`} className="h-11 justify-center" />
+            <KakaoButton label="카카오톡 채널" className="h-11 justify-center" />
           </div>
         </div>
       </div>
