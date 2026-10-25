@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { CallButton, COMPANY, KakaoButton, KakaoIcon, SiteFooter } from "@/components/contact";
+import { IndustryRoller } from "@/components/industry-roller";
 import { LiveFeed } from "@/components/live-feed";
 import { LiveStats } from "@/components/live-stats";
 import { Logo, Notice } from "@/components/ui";
@@ -161,13 +162,7 @@ export default function MainPage() {
             <br />
             단 한 명의 광고주에게만 10초 안에 카카오 알림톡으로 보냅니다.
           </p>
-          <div className="flex flex-wrap items-end gap-x-5 gap-y-2 rounded-2xl bg-brand px-5 py-5 text-white shadow-[0_12px_28px_rgba(38,89,217,0.25)] sm:px-7 sm:py-6">
-            <div className="flex flex-col gap-1">
-              <span className="text-[13px] font-bold text-white/80 sm:text-sm">신차 장기렌트 단독 실시간 DB 1건</span>
-              <span className="tabular text-[38px] leading-none sm:text-[44px] font-extrabold tracking-[-0.03em]">40,000원</span>
-            </div>
-            <span className="pb-1 text-sm text-white/80 sm:text-[15px]">VAT 별도 · 패키지 없음 · 받은 만큼만 차감</span>
-          </div>
+          <IndustryRoller items={industries} />
           <div className="grid grid-cols-2 gap-2 sm:hidden">
             <a href="#login" onClick={scrollTo("login")} className="inline-flex h-12 items-center justify-center rounded-[10px] border border-[#d1d6db] text-[15px] font-bold">
               로그인
