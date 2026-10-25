@@ -14,7 +14,7 @@ export function LegalPage({ title, updated, intro, sections }: { title: string; 
     <div className="min-h-screen bg-white">
       <header className="border-b border-line">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:h-[68px] sm:px-6">
-          <Link href="/login" className="py-2"><Logo size={22} /></Link>
+          <Link href="/" className="py-2"><Logo size={22} /></Link>
           <nav className="flex gap-4 text-sm font-semibold text-sub">
             <Link href="/terms" className="py-2.5 hover:text-ink">이용약관</Link>
             <Link href="/privacy" className="py-2.5 hover:text-ink">개인정보처리방침</Link>

@@ -60,7 +60,7 @@ export default function SignupPage() {
             <br />
             문의: 1600-7628
           </p>
-          <Link href="/login">
+          <Link href="/">
             <Button size="lg" className="mt-8 w-full">로그인 화면으로</Button>
           </Link>
         </div>
@@ -70,7 +70,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="mx-auto w-full max-w-md px-4 py-10">
-        <Link href="/login" className="inline-block py-2"><Logo /></Link>
+        <Link href="/" className="inline-block py-2"><Logo /></Link>
         <h1 className="mt-6 text-[22px] font-bold">광고주 가입 신청</h1>
         <p className="mt-1 text-sm text-sub">가입 후 관리자 승인이 끝나면 로그인할 수 있습니다.</p>
 

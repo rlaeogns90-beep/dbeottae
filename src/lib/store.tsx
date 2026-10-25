@@ -26,6 +26,8 @@ export interface AdminAlert {
 
 interface Store {
   state: State;
+  /** 서버에서 상태를 한 번이라도 받았는지 (받기 전에는 빈 상태로 그린다) */
+  ready: boolean;
   session: Session | null;
   now: Date;
   /** 관리자에게만: 읽지 않은 알림 */
@@ -65,6 +67,32 @@ interface Store {
 
 const Ctx = createContext<Store | null>(null);
 
+/** 서버에서 상태를 받기 전의 빈 상태. 이 상태로도 화면을 먼저 그려서 검색 로봇이 내용을 읽을 수 있게 한다. */
+const EMPTY: State = {
+  version: 0,
+  advertisers: [],
+  partners: [],
+  admins: [],
+  leads: [],
+  assignments: [],
+  wallet: [],
+  deposits: [],
+  defects: [],
+  groups: [],
+  settings: {
+    price: 44000,
+    minCharge: 440000,
+    dailyLimit: 3,
+    offLockHours: 24,
+    weekendStop: true,
+    paused: false,
+    incentivePerDb: 11000,
+    bankAccount: { bank: "", number: "", holder: "" },
+    solapi: { apiKey: "", channel: "", sender: "" },
+    connections: [],
+  },
+};
+
 function readSession(): Session | null {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
@@ -79,11 +107,13 @@ const json = { "content-type": "application/json" };
 const OFFLINE = "서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.";
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<State | null>(null);
+  const [state, setState] = useState<State>(EMPTY);
+  const [ready, setReady] = useState(false);
+  const readyRef = useRef(false);
   const [session, setSession] = useState<Session | null>(null);
   const [now, setNow] = useState(() => new Date());
   const [alerts, setAlerts] = useState<AdminAlert[]>([]);
-  const stateRef = useRef<State | null>(null);
+  const stateRef = useRef<State>(EMPTY);
   const sessionRef = useRef<Session | null>(null);
   // 작업은 한 번에 하나씩 보낸다. 보내는 중에는 받아온 상태로 화면을 덮지 않는다.
   const queue = useRef<Promise<void>>(Promise.resolve());
@@ -114,6 +144,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (pending.current > 0) return;
       stateRef.current = body.data;
       setState(body.data);
+      readyRef.current = true;
+      setReady(true);
     } catch {}
   }, [headers, saveSession]);
 
@@ -138,7 +170,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const act = useCallback(
     (action: Action): Result => {
       const who = sessionRef.current;
-      if (!who || !stateRef.current) return "다시 로그인해 주세요.";
+      if (!who || !readyRef.current) return "다시 로그인해 주세요.";
       const local = runAction(stateRef.current, who, action);
       if ("error" in local) return local.error;
       stateRef.current = local.state;
@@ -162,8 +194,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     [headers, refresh, saveSession],
   );
 
-  const store = useMemo<Store | null>(() => {
-    if (!state) return null;
+  const store = useMemo<Store>(() => {
     const run = (a: Action) => {
       act(a);
     };
@@ -177,6 +208,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     };
     return {
       state,
+      ready,
       session,
       now,
       alerts,
@@ -275,9 +307,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           .finally(() => refresh());
       },
     };
-  }, [state, session, now, alerts, act, headers, refresh, saveSession]);
+  }, [state, ready, session, now, alerts, act, headers, refresh, saveSession]);
 
-  if (!store) return <div className="min-h-screen bg-white" />;
   return <Ctx.Provider value={store}>{children}</Ctx.Provider>;
 }
 

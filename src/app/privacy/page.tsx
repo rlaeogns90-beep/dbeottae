@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { COMPANY } from "@/components/contact";
 import { LegalPage, type Section } from "@/components/legal";
 
-export const metadata: Metadata = { title: "개인정보처리방침 · DB어때" };
+export const metadata: Metadata = { title: "개인정보처리방침", alternates: { canonical: "/privacy" }, openGraph: { url: "/privacy", title: "개인정보처리방침 · DB어때" } };
 
 const PRIVACY_EMAIL = "darudaad@naver.com";
 

@@ -26,10 +26,20 @@ const securityHeaders = [
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
 ];
 
+// 로그인 후 화면·API는 검색엔진에 나오지 않게 한다.
+const noIndex = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      ...["/app/:path*", "/app", "/admin/:path*", "/admin", "/partner/:path*", "/partner", "/api/:path*"].map((source) => ({ source, headers: noIndex })),
+    ];
+  },
+  async redirects() {
+    // 첫 페이지 주소는 / 하나로 (예전 /login 주소는 영구 이동)
+    return [{ source: "/login", destination: "/", permanent: true }];
   },
 };
 

@@ -1,6 +1,6 @@
 "use client";
 
-// 메인 화면 (시안 A · 투명한 거래소): 소개, 로그인, 실시간 현황, 비교, 배정 과정, 결번 환급, 자주 묻는 질문
+// 메인 화면 (디비어때.com 첫 페이지, 시안 A · 투명한 거래소): 소개, 로그인, 실시간 현황, 비교, 배정 과정, 결번 환급, 자주 묻는 질문
 import { Bike, Car, CarFront, Phone, Plus, RotateCcw, ShieldCheck, Ship, Umbrella, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,6 +11,7 @@ import { LiveFeed } from "@/components/live-feed";
 import { LiveStats } from "@/components/live-stats";
 import { Logo, Notice } from "@/components/ui";
 import { useStore } from "@/lib/store";
+import { faqs } from "@/lib/content";
 import type { Session } from "@/lib/types";
 
 const home: Record<Session["role"], string> = { advertiser: "/app", partner: "/partner", admin: "/admin" };
@@ -55,16 +56,6 @@ const industries: { name: string; desc: string; icon: React.ElementType; live?: 
   { name: "보험", desc: "자동차·생활 보험 상담 DB", icon: Umbrella },
 ];
 
-const faqs: [string, string][] = [
-  ["DB어때는 어떤 플랫폼인가요?", "상담이 필요한 고객과 그 고객을 찾는 광고주를 업종별로 연결하는 DB 플랫폼입니다. 모든 DB는 한 분의 광고주에게만 전달되는 1:1 단독 DB이며, 직접 상담을 신청한 구매 의사가 분명한 고객만 연결해 드립니다."],
-  ["DB는 어디에서 수집되나요?", "모든 DB는 고객이 온라인에서 직접 상담을 신청하며 남긴 정보입니다. DB어때는 업종별로 10개의 브랜드 사이트를 직접 운영하고 있으며, 개인정보 제공에 동의한 신청 건만 광고주께 전달합니다."],
-  ["가격은 얼마인가요?", "신차 장기렌트 DB 기준으로 1건에 40,000원(VAT 별도)입니다. 10건분부터 충전하고, DB를 받을 때마다 1건씩 차감됩니다. 충전한 예치금은 환불되지 않습니다. 나머지 업종의 가격은 현재 협의 중이며, 업종이 열리면 안내해 드립니다."],
-  ["DB는 얼마나 빨리 오나요?", "고객이 신청하면 10초 안에 카카오 알림톡으로 도착합니다. 같은 DB는 사이트의 DB 관리 화면에서도 바로 볼 수 있습니다."],
-  ["원할 때만 받을 수 있나요?", "네. 수신 ON/OFF를 직접 켜고 끌 수 있습니다. 시간대 지정은 없고, 끈 뒤 24시간이 지나면 다시 켤 수 있습니다. 예치금을 다 쓰면 자동으로 꺼집니다."],
-  ["다른 사람도 같은 DB를 받나요?", "아니요. 한 신청 건은 한 명에게만 보냅니다. 같은 번호가 다시 들어와도 이미 받은 분에게는 다시 보내지 않습니다."],
-  ["어떤 DB가 불량으로 인정되나요?", "결번만 인정합니다. 받은 시점과 상관없이 결번이면 사이트에서 불량 처리를 신청하세요. 확인 후 DB 금액 100%를 예치금으로 환급해 드립니다. 통화 녹음은 없어도 됩니다."],
-  ["어떻게 시작하나요?", "담당 영업자에게 받은 추천인 아이디로 가입 신청하세요. 관리자 승인 후 예치금을 충전하고 수신을 켜면 바로 받기 시작합니다."],
-];
 
 function PhoneMock() {
   const Card = ({ time, children, strong }: { time: string; children: React.ReactNode; strong?: boolean }) => (
@@ -96,7 +87,7 @@ function PhoneMock() {
   );
 }
 
-export default function MainPage() {
+export function MainPage() {
   const { login } = useStore();
   const router = useRouter();
   const [id, setId] = useState("");

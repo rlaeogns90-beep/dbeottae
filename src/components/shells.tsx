@@ -14,7 +14,7 @@ import type { Admin, Advertiser, Partner, Session } from "@/lib/types";
 import { cx, Logo } from "./ui";
 
 function useGuard(role: Session["role"]) {
-  const { session, state } = useStore();
+  const { session, state, ready } = useStore();
   const router = useRouter();
   const user =
     session?.role === role
@@ -24,9 +24,10 @@ function useGuard(role: Session["role"]) {
           ? state.partners.find((p) => p.id === session.id)
           : state.admins.find((a) => a.id === session.id)
       : undefined;
+  // 서버에서 상태를 받은 뒤에도 계정이 없을 때만 로그인 화면으로 보낸다.
   useEffect(() => {
-    if (!user) router.replace("/login");
-  }, [user, router]);
+    if (ready && !user) router.replace("/#login");
+  }, [ready, user, router]);
   return user;
 }
 
@@ -84,7 +85,7 @@ function UserMenu({ name }: { name: string }) {
       <button
         onClick={() => {
           logout();
-          router.replace("/login");
+          router.replace("/");
         }}
         className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm text-mute hover:bg-soft hover:text-sub"
       >

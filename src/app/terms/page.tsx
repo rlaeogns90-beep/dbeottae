@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { COMPANY } from "@/components/contact";
 import { LegalPage, type Section } from "@/components/legal";
 
-export const metadata: Metadata = { title: "이용약관 · DB어때" };
+export const metadata: Metadata = { title: "이용약관", alternates: { canonical: "/terms" }, openGraph: { url: "/terms", title: "이용약관 · DB어때" } };
 
 const sections: Section[] = [
   ["제1조 (목적)", [
