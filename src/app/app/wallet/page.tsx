@@ -8,7 +8,7 @@ import { dateTime, won } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import type { WalletType } from "@/lib/types";
 
-const typeLabel: Record<WalletType, string> = { charge: "충전", debit: "차감", refund: "불량 환원", adjust: "조정" };
+const typeLabel: Record<WalletType, string> = { charge: "충전", debit: "차감", refund: "결번 환급", adjust: "조정" };
 
 export default function WalletPage() {
   const adv = useAdvertiser()!;
@@ -74,7 +74,7 @@ export default function WalletPage() {
               </div>
               <label className="flex items-start gap-2 text-[13px] leading-relaxed text-sub">
                 <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-[#2659d9]" />
-                충전한 예치금은 환불되지 않으며, 불량 승인 건만 예치금으로 환원되는 것에 동의합니다.
+                충전한 예치금은 환불되지 않으며, 결번으로 확인된 DB만 예치금으로 100% 환급되는 것에 동의합니다.
               </label>
               {msg && <p className={cx("text-[13px]", msg.ok ? "text-brand" : "text-bad")}>{msg.text}</p>}
               <Button size="lg" className="w-full" onClick={submit}>{won(amount)} 충전 신청</Button>

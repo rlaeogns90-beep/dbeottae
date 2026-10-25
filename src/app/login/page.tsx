@@ -1,6 +1,6 @@
 "use client";
 
-// 메인 화면 (시안 A · 투명한 거래소): 소개, 로그인, 실시간 현황, 비교, 배정 과정, 결번 환원, 자주 묻는 질문
+// 메인 화면 (시안 A · 투명한 거래소): 소개, 로그인, 실시간 현황, 비교, 배정 과정, 결번 환급, 자주 묻는 질문
 import { Bike, Car, CarFront, Phone, Plus, RotateCcw, ShieldCheck, Ship, Umbrella, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -28,7 +28,7 @@ const demo: [string, string][] = [
 const proofs = [
   { icon: ShieldCheck, title: "출처 확실", desc: "매체 사이트, 본인인증, 동의 기록까지 확인된 DB만" },
   { icon: UserRound, title: "1:1 단독", desc: "한 신청 건은 한 명에게만, 같은 번호는 다시 주지 않음" },
-  { icon: RotateCcw, title: "결번 환원", desc: "받은 뒤 3시간 안 신청, 확인되면 예치금으로 환원" },
+  { icon: RotateCcw, title: "결번 100% 환급", desc: "기간 상관없이 결번이면 DB 금액 전액을 예치금으로" },
 ];
 
 const compare: [string, string, string][] = [
@@ -37,7 +37,7 @@ const compare: [string, string, string][] = [
   ["구매 단위", "수십 건 패키지 선결제", "1건씩 예치금에서 차감"],
   ["수신 조절", "정해진 물량을 그대로 받음", "원할 때 직접 수신 ON/OFF"],
   ["전달", "모아서 일괄 전달", "10초 안에 1:1 카카오 알림톡"],
-  ["불량 처리", "업체마다 다른 AS 조건", "결번이면 예치금으로 모두 환원"],
+  ["불량 처리", "업체마다 다른 AS 조건", "결번이면 기간 상관없이 100% 환급"],
 ];
 
 const steps: [string, string][] = [
@@ -62,7 +62,7 @@ const faqs: [string, string][] = [
   ["DB는 얼마나 빨리 오나요?", "고객이 신청하면 10초 안에 카카오 알림톡으로 도착합니다. 같은 DB는 사이트의 DB 관리 화면에서도 바로 볼 수 있습니다."],
   ["원할 때만 받을 수 있나요?", "네. 수신 ON/OFF를 직접 켜고 끌 수 있습니다. 시간대 지정은 없고, 끈 뒤 24시간이 지나면 다시 켤 수 있습니다. 예치금을 다 쓰면 자동으로 꺼집니다."],
   ["다른 사람도 같은 DB를 받나요?", "아니요. 한 신청 건은 한 명에게만 보냅니다. 같은 번호가 다시 들어와도 이미 받은 분에게는 다시 보내지 않습니다."],
-  ["어떤 DB가 불량으로 인정되나요?", "결번만 인정합니다. 받은 뒤 3시간 안에 사이트에서 불량 처리를 신청하면, 확인 후 예치금으로 환원됩니다. 통화 녹음은 없어도 됩니다."],
+  ["어떤 DB가 불량으로 인정되나요?", "결번만 인정합니다. 받은 시점과 상관없이 결번이면 사이트에서 불량 처리를 신청하세요. 확인 후 DB 금액 100%를 예치금으로 환급해 드립니다. 통화 녹음은 없어도 됩니다."],
   ["어떻게 시작하나요?", "담당 영업자에게 받은 추천인 아이디로 가입 신청하세요. 관리자 승인 후 예치금을 충전하고 수신을 켜면 바로 받기 시작합니다."],
 ];
 
@@ -370,7 +370,7 @@ export default function MainPage() {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-6 rounded-[20px] bg-brand p-6 text-white sm:p-12">
           <div className="flex min-w-0 flex-[1_1_480px] flex-col gap-2.5">
             <h2 className="text-[22px] font-extrabold tracking-[-0.02em] sm:text-[32px]">결번이면 모두 돌려드립니다</h2>
-            <p className="text-[15px] leading-relaxed text-[#e3eafb] sm:text-[17px]">DB를 받은 뒤 3시간 안에 불량 처리를 신청하면, 확인 후 예치금으로 환원됩니다.</p>
+            <p className="text-[15px] leading-relaxed text-[#e3eafb] sm:text-[17px]">기간과 상관없이 결번이면 신청만 하세요. 확인 후 DB 금액 100%를 예치금으로 환급해 드립니다.</p>
           </div>
           <Link href="/signup" className="inline-flex h-[52px] w-full items-center justify-center rounded-[10px] bg-white px-6 sm:w-auto text-base font-extrabold text-brand-dark hover:bg-[#f2f6fe]">
             광고주 가입 신청

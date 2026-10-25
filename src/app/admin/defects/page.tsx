@@ -20,7 +20,7 @@ export default function AdminDefectsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="불량 처리 승인" desc="결번만 인정합니다. 번호가 결번인지 확인하고 승인하면 44,000원이 광고주 예치금으로 환원됩니다" />
+      <PageHeader title="불량 처리 승인" desc="결번만 인정하며 신청 기한은 없습니다. 번호가 결번인지 확인하고 승인하면 44,000원 전액이 광고주 예치금으로 환급됩니다" />
 
       {pending.length === 0 ? (
         <Card><Empty title="검토할 불량 신청이 없습니다" /></Card>
@@ -43,7 +43,7 @@ export default function AdminDefectsPage() {
                   </div>
                   <div className="flex gap-2">
                     <Button variant="danger" size="sm" onClick={() => { setRejecting(d.id); setReason(""); }}>반려</Button>
-                    <Button size="sm" onClick={() => handleDefect(d.id, true)}>승인 · 44,000원 환원</Button>
+                    <Button size="sm" onClick={() => handleDefect(d.id, true)}>승인 · 44,000원 환급</Button>
                   </div>
                 </div>
                 <div className="mt-4 flex items-center gap-3 rounded-lg bg-page px-4 py-3">
@@ -82,7 +82,7 @@ export default function AdminDefectsPage() {
                     <td className={td}>{lead.name}</td>
                     <td className={td}>{d.reason}</td>
                     <td className={td}>
-                      {d.status === "approved" ? <Badge tone="blue">승인 · 환원</Badge> : <><Badge tone="red">반려</Badge> <span className="text-xs text-mute">{d.rejectReason}</span></>}
+                      {d.status === "approved" ? <Badge tone="blue">승인 · 환급</Badge> : <><Badge tone="red">반려</Badge> <span className="text-xs text-mute">{d.rejectReason}</span></>}
                     </td>
                   </tr>
                 );

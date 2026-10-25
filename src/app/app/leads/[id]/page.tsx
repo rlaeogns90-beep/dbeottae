@@ -24,7 +24,7 @@ export default function LeadDetail() {
 
   if (!a) return <Card><Empty title="DB를 찾을 수 없습니다" /></Card>;
   const lead = state.leads.find((l) => l.id === a.leadId)!;
-  const { report, left } = defect;
+  const { report } = defect;
 
   const rows: [string, React.ReactNode][] = [
     ["연락처", <span key="p" className="tabular">{lead.phone}</span>],
@@ -103,17 +103,17 @@ export default function LeadDetail() {
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-[15px] font-bold">불량 처리</p>
-            <p className="mt-0.5 text-[13px] text-sub">결번인 DB만 수신 후 3시간 안에 신청할 수 있습니다.</p>
+            <p className="mt-0.5 text-[13px] text-sub">결번이면 받은 시점과 상관없이 언제든 신청할 수 있습니다.</p>
           </div>
           {!report || report.status === "rejected" ? (
-            <Button variant="danger" size="sm" disabled={!left} onClick={() => setOpen(true)}>불량 처리</Button>
+            <Button variant="danger" size="sm" onClick={() => setOpen(true)}>불량 처리</Button>
           ) : null}
         </div>
         <div className="mt-3">
-          {report?.status === "pending" && <Notice tone="orange">지원팀이 검토 중입니다. 승인되면 44,000원이 예치금으로 돌아옵니다.</Notice>}
-          {report?.status === "approved" && <Notice tone="blue">승인되어 44,000원이 예치금으로 환원됐습니다.</Notice>}
+          {report?.status === "pending" && <Notice tone="orange">지원팀이 결번인지 확인하고 있습니다. 확인되면 44,000원 전액이 예치금으로 환급됩니다.</Notice>}
+          {report?.status === "approved" && <Notice tone="blue">결번이 확인되어 44,000원 전액(100%)이 예치금으로 환급됐습니다.</Notice>}
           {report?.status === "rejected" && <Notice>반려됨: {report.rejectReason ?? "사유 없음"}</Notice>}
-          {!report && (left ? <p className="tabular text-[13px] text-mute">신청 가능 시간 {left} 남음</p> : <p className="text-[13px] text-mute">신청 기한(3시간)이 지났습니다.</p>)}
+          {!report && <p className="text-[13px] text-mute">결번이 확인되면 DB 금액 100%를 예치금으로 돌려드립니다.</p>}
         </div>
       </Card>
 
@@ -150,7 +150,7 @@ export default function LeadDetail() {
               className="block w-full text-sm text-sub file:mr-3 file:h-10 file:rounded-lg file:border file:border-line file:bg-white file:px-4 file:text-sm file:font-semibold file:text-ink"
             />
           </Field>
-          <Notice>불량은 결번만 인정됩니다. 지원팀이 번호를 확인해 승인하면 44,000원이 예치금으로 환원됩니다.</Notice>
+          <Notice>불량은 결번만 인정되며 신청 기한은 없습니다. 지원팀이 번호를 확인하면 44,000원 전액이 예치금으로 환급됩니다.</Notice>
           {error && <p className="text-[13px] text-bad">{error}</p>}
         </div>
       </Modal>

@@ -64,7 +64,7 @@ export function LiveStats() {
     { label: "오늘 접수 DB", value: state.leads.filter((l) => new Date(l.createdAt).toDateString() === today).length, unit: "건", live: true },
     { label: "이번 달 대기 인원", value: WAITING_ADVERTISERS, unit: "명" },
     { label: "운영 브랜드 사이트", value: 10, unit: "개" },
-    { label: "결번 환원 신청", value: "3시간", unit: "이내" },
+    { label: "결번 환급", value: 100, unit: "%" },
   ];
 
   return (

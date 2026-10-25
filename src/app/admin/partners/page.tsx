@@ -16,7 +16,7 @@ export default function AdminPartners() {
     <div>
       <PageHeader
         title="영업자 · 인센티브"
-        desc={`추천 광고주의 DB 1건당 ${won(state.settings.incentivePerDb)}이 영업자 수익으로 쌓입니다 (불량 환원 건 제외)`}
+        desc={`추천 광고주의 DB 1건당 ${won(state.settings.incentivePerDb)}이 영업자 수익으로 쌓입니다 (결번 환급 건 제외)`}
         action={
           <div className="w-40">
             <Select className="h-10" value={month} onChange={(e) => setMonth(e.target.value)}>

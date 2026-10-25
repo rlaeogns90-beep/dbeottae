@@ -1,6 +1,6 @@
 // 화면에서 하는 모든 변경 작업. 브라우저(미리 반영)와 서버(실제 저장)가 같은 함수를 쓰고,
 // 서버에서는 이 함수가 권한까지 확인한 결과만 저장한다.
-import { assign, checkAdvertiser, defectDeadline, reopenAt, routeLead, uid } from "./engine";
+import { assign, checkAdvertiser, reopenAt, routeLead, uid } from "./engine";
 import type { Advertiser, Assignment, DefectReason, Lead, MemberStatus, Session, Settings, State } from "./types";
 
 export type Action =
@@ -132,7 +132,7 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
     case "reportDefect": {
       const asg = s.assignments.find((x) => x.id === a.assignmentId);
       if (!asg) return { error: "DB를 찾을 수 없습니다." };
-      if (defectDeadline(s, asg) < now) return { error: "수신 후 3시간이 지나 불량 처리를 신청할 수 없습니다." };
+      // 결번은 받은 시점과 상관없이 언제든 신청할 수 있다.
       if (s.defects.some((d) => d.assignmentId === asg.id && d.status !== "rejected")) return { error: "이미 신청한 DB입니다." };
       return ok({ ...s, defects: [{ id: uid("df"), assignmentId: asg.id, reason: "결번", fileName: a.fileName || undefined, at, status: "pending" }, ...s.defects] });
     }
@@ -171,7 +171,7 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
         defects: s.defects.map((x) => (x.id === a.id ? { ...x, status: a.ok ? "approved" : "rejected", rejectReason: a.rejectReason, handledAt: at } : x)),
         leads: a.ok ? s.leads.map((l) => (l.id === lead.id ? { ...l, status: "defect" } : l)) : s.leads,
         wallet: a.ok
-          ? [{ id: uid("tx"), advertiserId: asg.advertiserId, type: "refund", amount: asg.amount, at, note: `불량 환원 · ${lead.name} (${d.reason})` }, ...s.wallet]
+          ? [{ id: uid("tx"), advertiserId: asg.advertiserId, type: "refund", amount: asg.amount, at, note: `결번 환급 · ${lead.name}` }, ...s.wallet]
           : s.wallet,
       });
     }

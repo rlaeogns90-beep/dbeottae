@@ -124,6 +124,3 @@ export function routeLead(s: State, lead: Lead, now = new Date()): State {
   if (slots.length === 0) return wait("배정 그룹 없음");
   return wait(capped ? "하루 한도 초과" : "배정 가능한 광고주 없음");
 }
-
-export const defectDeadline = (s: State, a: Assignment) =>
-  new Date(new Date(a.assignedAt).getTime() + s.settings.defectHours * 3600_000);

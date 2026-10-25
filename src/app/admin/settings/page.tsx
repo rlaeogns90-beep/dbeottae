@@ -52,8 +52,8 @@ export default function SettingsPage() {
           <Row title="배정 순서" desc="1번 그룹부터 차례대로, 그룹마다 광고주 1명"><Value>그룹 순번</Value></Row>
           <Row title="하루 한도" desc="광고주 1명이 하루에 받는 최대 건수, 넘으면 관리자 대기"><Value>{s.dailyLimit}건</Value></Row>
           <Row title="OFF 후 재개 대기" desc="광고주가 직접 끈 뒤 다시 켤 수 있을 때까지"><Value>{s.offLockHours}시간</Value></Row>
-          <Row title="불량 신청 기한" desc="DB 배정 후 이 시간 안에만 신청 가능"><Value>{s.defectHours}시간</Value></Row>
-          <Row title="영업자 수익" desc="추천 광고주의 DB 1건당, 불량 환원 건 제외"><Value>{won(s.incentivePerDb)}</Value></Row>
+          <Row title="결번 환급" desc="신청 기한 없이, 결번이 확인되면 DB 금액 전액을 예치금으로"><Value>100%</Value></Row>
+          <Row title="영업자 수익" desc="추천 광고주의 DB 1건당, 결번 환급 건 제외"><Value>{won(s.incentivePerDb)}</Value></Row>
                   </div>
       </Card>
 

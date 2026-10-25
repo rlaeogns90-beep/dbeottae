@@ -2,8 +2,7 @@
 
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { defectDeadline } from "@/lib/engine";
-import { remaining, timeAgo } from "@/lib/format";
+import { timeAgo } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import type { Assignment, ConsultStatus, Lead } from "@/lib/types";
 import { Badge } from "./ui";
@@ -21,21 +20,20 @@ export const consultTone: Record<ConsultStatus, "gray" | "blue" | "green" | "ora
 /** 차종 · 개월수 (개월수는 있을 때만) */
 export const carLine = (l: Lead) => [l.car || "차종 미입력", l.months ? `${l.months}개월` : ""].filter(Boolean).join(" · ");
 
+/** 이 DB의 불량(결번) 신청 상태. 신청 기한은 없다. */
 export function useDefectState(a?: Assignment) {
-  const { state, now } = useStore();
-  if (!a) return { report: undefined, left: null };
+  const { state } = useStore();
+  if (!a) return { report: undefined };
   const report = state.defects.find((d) => d.assignmentId === a.id && d.status !== "rejected")
     ?? state.defects.find((d) => d.assignmentId === a.id);
-  const left = remaining(defectDeadline(state, a), now);
-  return { report, left };
+  return { report };
 }
 
 export function DefectBadge({ a }: { a: Assignment }) {
-  const { report, left } = useDefectState(a);
+  const { report } = useDefectState(a);
   if (report?.status === "pending") return <Badge tone="orange">불량 검토 중</Badge>;
-  if (report?.status === "approved") return <Badge tone="red">불량 · 환원 완료</Badge>;
+  if (report?.status === "approved") return <Badge tone="red">결번 · 100% 환급</Badge>;
   if (report?.status === "rejected") return <Badge>불량 반려</Badge>;
-  if (left) return <span className="tabular text-xs text-mute">불량 신청 {left} 남음</span>;
   return null;
 }
 

@@ -16,7 +16,7 @@ export default function DefectsPage() {
       <PageHeader title="불량 처리 내역" />
       <div className="mb-4">
         <Notice>
-          불량은 <b>결번만</b> 인정됩니다. 결번인 DB는 받은 뒤 <b>3시간 안에</b> DB 상세 화면에서 신청하세요. 통화 녹음은 없어도 됩니다. 지원팀이 승인하면 44,000원이 예치금으로 돌아옵니다.
+          불량은 <b>결번만</b> 인정됩니다. 결번인 DB는 <b>받은 시점과 상관없이</b> DB 상세 화면에서 신청하세요. 통화 녹음은 없어도 됩니다. 결번이 확인되면 44,000원 <b>전액(100%)</b>을 예치금으로 돌려드립니다.
         </Notice>
       </div>
       <Card>
@@ -36,7 +36,7 @@ export default function DefectsPage() {
                       {d.status === "rejected" && <p className="mt-1 text-[13px] text-bad">반려 사유: {d.rejectReason}</p>}
                     </div>
                     {d.status === "pending" && <Badge tone="orange">검토 중</Badge>}
-                    {d.status === "approved" && <Badge tone="blue">승인 · 44,000원 환원</Badge>}
+                    {d.status === "approved" && <Badge tone="blue">승인 · 44,000원 환급</Badge>}
                     {d.status === "rejected" && <Badge tone="red">반려</Badge>}
                   </Link>
                 </li>

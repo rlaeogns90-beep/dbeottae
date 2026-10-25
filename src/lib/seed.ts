@@ -150,7 +150,6 @@ export function seed(now = Date.now()): State {
       minCharge: 440000,
       dailyLimit: 3,
       offLockHours: 24,
-      defectHours: 3,
       weekendStop: true,
       paused: false,
       incentivePerDb: 11000,

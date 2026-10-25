@@ -19,7 +19,7 @@ export interface MonthRow {
 
 /**
  * 영업자 실적. 결제 = 추천 광고주가 DB를 1건 받아 예치금에서 차감된 것.
- * 불량 승인으로 환원된 건은 결제에서 뺀다. 수익 = 결제 건수 × 건당 수익.
+ * 결번으로 환급된 건은 결제에서 뺀다. 수익 = 결제 건수 × 건당 수익.
  */
 export function partnerStats(s: State, code: string, month = monthKey(new Date())) {
   const advertisers = s.advertisers.filter((a) => a.referrer === code);

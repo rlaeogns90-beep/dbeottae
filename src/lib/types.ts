@@ -141,7 +141,6 @@ export interface Settings {
   minCharge: number;
   dailyLimit: number;
   offLockHours: number;
-  defectHours: number;
   weekendStop: boolean;
   paused: boolean;
   /** 영업자 수익: 추천 광고주의 DB 1건당 */
