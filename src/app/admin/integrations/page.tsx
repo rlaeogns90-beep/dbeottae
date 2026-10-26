@@ -91,13 +91,19 @@ export default function IntegrationsPage() {
 
       <Card>
         <CardHeader title="솔라피 알림톡" desc="DB 도착, 자동 OFF, 충전 완료, 가입 승인, 불량 처리 결과를 광고주에게 보냅니다" />
-        <div className="grid gap-3 p-5 sm:grid-cols-3">
+        <div className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4">
           <Field label="API 키"><Input type="password" placeholder="솔라피 API 키" value={sol.apiKey} onChange={(e) => setSol({ ...sol, apiKey: e.target.value })} /></Field>
-          <Field label="발신 프로필 (카카오톡 채널)"><Input value={sol.channel} onChange={(e) => setSol({ ...sol, channel: e.target.value })} /></Field>
+          <Field label="채널 이름"><Input value={sol.channel} onChange={(e) => setSol({ ...sol, channel: e.target.value })} /></Field>
+          <Field label="PFID (발신 프로필 ID)" hint="솔라피에 연결한 카카오톡 채널의 PFID"><Input value={sol.pfId ?? ""} onChange={(e) => setSol({ ...sol, pfId: e.target.value.trim() })} placeholder="KA01PF..." /></Field>
           <Field label="대체 문자 발신번호"><Input value={sol.sender} onChange={(e) => setSol({ ...sol, sender: e.target.value })} /></Field>
         </div>
+        <ul className="mx-5 mb-4 flex flex-wrap gap-x-5 gap-y-1 text-[13px]">
+          {[["PFID", !!sol.pfId], ["API 키", !!sol.apiKey], ["발신번호", !!sol.sender]].map(([k, ok]) => (
+            <li key={String(k)} className={ok ? "font-semibold text-ok" : "text-mute"}>{ok ? "✓" : "○"} {k} {ok ? "등록됨" : "미등록"}</li>
+          ))}
+        </ul>
         <div className="flex items-center justify-between gap-3 border-t border-line px-5 py-4">
-          <p className="text-[13px] text-mute">알림톡 템플릿은 카카오 심사를 받은 뒤 등록합니다.</p>
+          <p className="text-[13px] text-mute">알림톡 템플릿은 카카오 심사를 받은 뒤 등록합니다. 발송 기능은 API 키와 승인된 템플릿이 준비되면 연결합니다.</p>
           <Button onClick={() => { updateSettings({ solapi: sol }); setSaved(true); setTimeout(() => setSaved(false), 1500); }}>
             {saved ? "저장됨" : "저장"}
           </Button>

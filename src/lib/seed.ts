@@ -84,12 +84,12 @@ export function seed(now = Date.now()): State {
     as("as14", "ld14", "adv2", DAY * 38, "관리"),
   ];
 
-  const tx = (id: string, advertiserId: string, type: WalletTx["type"], amount: number, min: number, note: string): WalletTx => ({
-    id, advertiserId, type, amount, at: ago(min), note,
+  const tx = (id: string, advertiserId: string, type: WalletTx["type"], amount: number, min: number, note: string, depositId?: string): WalletTx => ({
+    id, advertiserId, type, amount, at: ago(min), note, depositId,
   });
 
   const wallet: WalletTx[] = [
-    tx("t1", "adv1", "charge", 880000, DAY * 3, "예치금 충전"),
+    tx("t1", "adv1", "charge", 880000, DAY * 3, "예치금 충전", "dp0"),
     tx("t2", "adv1", "debit", -44000, 60 * 2, "DB 배정 · 배유진 현대 투싼"),
     tx("t3", "adv1", "debit", -44000, 40, "DB 배정 · 강수민 기아 쏘렌토"),
     tx("t4", "adv1", "debit", -44000, 12, "DB 배정 · 홍길동 현대 그랜저"),
@@ -114,7 +114,7 @@ export function seed(now = Date.now()): State {
 
   const deposits: DepositRequest[] = [
     { id: "dp1", advertiserId: "adv4", amount: 440000, depositor: "최지우", at: ago(20), status: "pending" },
-    { id: "dp0", advertiserId: "adv1", amount: 880000, depositor: "김민준", at: ago(DAY * 3 + 30), status: "approved", handledAt: ago(DAY * 3) },
+    { id: "dp0", advertiserId: "adv1", amount: 880000, depositor: "김민준", at: ago(DAY * 3 + 30), status: "approved", handledAt: ago(DAY * 3), receipt: { status: "issued", issuedAt: ago(DAY * 2) } },
   ];
 
   const defects: DefectReport[] = [
@@ -155,7 +155,7 @@ export function seed(now = Date.now()): State {
       incentivePerDb: 11000,
       bankAccount: { bank: "신한은행", number: "110-485-219078", holder: "마케팅을다루다" },
       lastGroupId: "g1",
-      solapi: { apiKey: "", channel: "마케팅을다루다", sender: "1600-7628" },
+      solapi: { apiKey: "", channel: "마케팅을다루다", pfId: "KA01PF231027070112916rZ1c03DoQgk", sender: "1600-7628" },
       connections: [
         { id: "cn0", name: "제피어 · 메타 잠재고객", type: "landing", key: "lk_seed0000", active: true },
         { id: "cn1", name: "장기렌트 견적 사이트", type: "landing", key: "lk_7f3a9c21", active: true },

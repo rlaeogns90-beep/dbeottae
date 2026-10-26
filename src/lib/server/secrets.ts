@@ -10,7 +10,7 @@ const masked = (l: Lead): Lead => ({ id: l.id, name: maskMiddle(l.name), phone: 
 /** 광고주·영업자·비로그인에게 보여도 되는 설정만 */
 const publicSettings = (s: Settings): Settings => ({
   ...s,
-  solapi: { apiKey: "", channel: "", sender: "" },
+  solapi: { apiKey: "", channel: "", pfId: "", sender: "" },
   connections: [],
   lastGroupId: undefined,
 });

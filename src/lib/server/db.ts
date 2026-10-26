@@ -33,6 +33,11 @@ export const ensureTable = () =>
       id bigserial primary key, at timestamptz not null default now(),
       level text not null, source text not null, message text not null, read_at timestamptz
     )`;
+    // 세금계산서·현금영수증 첨부 파일: 입금 건(deposit_id)마다 1개. 본문은 상태(app_state)가 아니라 여기에 따로 둔다.
+    await sql`create table if not exists receipt_files (
+      deposit_id text primary key, name text not null, mime text not null, size int not null,
+      data bytea not null, at timestamptz not null default now()
+    )`;
     await sql`create table if not exists app_state_backups (
       id bigserial primary key, at timestamptz not null default now(), rev int not null, data jsonb not null
     )`;

@@ -13,6 +13,7 @@ export type Action =
   | { type: "approveMember"; kind: "advertiser" | "partner"; id: string; ok: boolean }
   | { type: "setMemberStatus"; kind: "advertiser" | "partner"; id: string; status: MemberStatus }
   | { type: "handleDeposit"; id: string; ok: boolean }
+  | { type: "setReceiptStatus"; depositId: string; issued: boolean }
   | { type: "handleDefect"; id: string; ok: boolean; rejectReason?: string }
   | { type: "assignWaiting"; leadId: string; advertiserId: string }
   | { type: "assignWaitingToGroup"; leadId: string; groupId: string }
@@ -54,6 +55,8 @@ function invalid(a: Action): string | null {
       return a.patch.memo === undefined || str(a.patch.memo, 2000) ? null : "메모는 2,000자까지 쓸 수 있습니다.";
     case "reportDefect":
       return a.reason === "결번" && (a.fileName === undefined || str(a.fileName, 200)) ? null : "잘못된 요청입니다.";
+    case "setReceiptStatus":
+      return typeof a.depositId === "string" && typeof a.issued === "boolean" ? null : "잘못된 요청입니다.";
     case "handleDefect":
       return a.rejectReason === undefined || str(a.rejectReason, 200) ? null : "반려 사유는 200자까지 쓸 수 있습니다.";
     case "adjustWallet":
@@ -156,9 +159,17 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
       if (d.status !== "pending") return { error: "이미 처리한 입금 요청입니다." };
       return ok({
         ...s,
-        deposits: s.deposits.map((x) => (x.id === a.id ? { ...x, status: a.ok ? "approved" : "rejected", handledAt: at } : x)),
-        wallet: a.ok ? [{ id: uid("tx"), advertiserId: d.advertiserId, type: "charge", amount: d.amount, at, note: "예치금 충전" }, ...s.wallet] : s.wallet,
+        // 입금이 확인되면 증빙(세금계산서·현금영수증)은 '대기'로 시작한다.
+        deposits: s.deposits.map((x) => (x.id === a.id ? { ...x, status: a.ok ? "approved" : "rejected", handledAt: at, receipt: a.ok ? { status: "pending" } : undefined } : x)),
+        wallet: a.ok ? [{ id: uid("tx"), advertiserId: d.advertiserId, type: "charge", amount: d.amount, at, note: "예치금 충전", depositId: d.id }, ...s.wallet] : s.wallet,
       });
+    }
+    case "setReceiptStatus": {
+      const d = s.deposits.find((x) => x.id === a.depositId);
+      if (!d) return { error: "입금 건을 찾을 수 없습니다." };
+      if (d.status !== "approved") return { error: "입금이 확인된 건만 발행 상태를 바꿀 수 있습니다." };
+      const receipt = { ...d.receipt, status: a.issued ? "issued" : "pending", issuedAt: a.issued ? (d.receipt?.issuedAt ?? at) : undefined } as NonNullable<typeof d.receipt>;
+      return ok({ ...s, deposits: s.deposits.map((x) => (x.id === d.id ? { ...x, receipt } : x)) });
     }
     case "handleDefect": {
       const d = s.defects.find((x) => x.id === a.id);

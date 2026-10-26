@@ -95,6 +95,17 @@ export interface WalletTx {
   amount: number;
   at: string;
   note: string;
+  /** 충전 건이면 어떤 입금 신청에서 생겼는지 (계산서 확인하기 연결용) */
+  depositId?: string;
+}
+
+/** 입금 건의 세금계산서·현금영수증 발행 현황 */
+export interface Receipt {
+  /** 대기 → 발행완료 */
+  status: "pending" | "issued";
+  issuedAt?: string;
+  /** 첨부한 발행 파일(PDF·이미지). 파일 본문은 별도 저장소에 있고 여기엔 이름·크기만 둔다. */
+  file?: { name: string; size: number; at: string };
 }
 
 export interface DepositRequest {
@@ -105,6 +116,8 @@ export interface DepositRequest {
   at: string;
   status: "pending" | "approved" | "rejected";
   handledAt?: string;
+  /** 입금 확인(approved) 후에만 생긴다. 없으면 발행 대기로 본다. */
+  receipt?: Receipt;
 }
 
 /** 불량 인정 사유는 결번 하나뿐 */
@@ -148,7 +161,8 @@ export interface Settings {
   bankAccount: { bank: string; number: string; holder: string };
   /** 마지막으로 자동 배정한 그룹. 다음 DB는 그다음 번호 그룹부터 찾는다. */
   lastGroupId?: string;
-  solapi: { apiKey: string; channel: string; sender: string };
+  /** pfId: 솔라피에 연결된 카카오톡 채널의 발신 프로필 ID(PFID) */
+  solapi: { apiKey: string; channel: string; pfId: string; sender: string };
   connections: Connection[];
 }
 

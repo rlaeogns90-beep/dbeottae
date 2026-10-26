@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ReceiptCheck } from "@/components/receipt";
 import { useAdvertiser } from "@/components/shells";
 import { Badge, Button, Card, CardHeader, cx, Empty, Field, Input, Notice, PageHeader } from "@/components/ui";
 import { balanceOf } from "@/lib/engine";
@@ -95,8 +96,11 @@ export default function WalletPage() {
               <Empty title="아직 내역이 없습니다" />
             ) : (
               <ul className="divide-y divide-line">
-                {txs.map((t) => (
-                  <li key={t.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
+                {txs.map((t) => {
+                  const dep = t.type === "charge" && t.depositId ? requests.find((r) => r.id === t.depositId) : undefined;
+                  return (
+                  <li key={t.id} className="px-5 py-3.5">
+                   <div className="flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <Badge tone={t.amount > 0 ? "blue" : "gray"}>{typeLabel[t.type]}</Badge>
@@ -107,8 +111,15 @@ export default function WalletPage() {
                     <span className={cx("tabular shrink-0 text-[15px] font-semibold", t.amount > 0 ? "text-brand" : "text-ink")}>
                       {t.amount > 0 ? "+" : ""}{won(t.amount)}
                     </span>
+                   </div>
+                   {dep && (
+                     <div className="mt-2.5">
+                       <ReceiptCheck d={dep} kind={adv.receiptType} />
+                     </div>
+                   )}
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             )}
           </Card>

@@ -50,6 +50,11 @@ interface Store {
   approveMember: (kind: "advertiser" | "partner", id: string, ok: boolean) => void;
   setMemberStatus: (kind: "advertiser" | "partner", id: string, status: MemberStatus) => void;
   handleDeposit: (id: string, ok: boolean) => void;
+  /** 입금 건의 세금계산서·현금영수증 발행 상태 (대기 ↔ 발행완료) */
+  setReceiptStatus: (depositId: string, issued: boolean) => void;
+  /** 발행 파일(PDF·PNG·JPG) 첨부 / 삭제. 실패하면 안내 문구를 돌려준다. */
+  attachReceiptFile: (depositId: string, file: File) => Promise<Result>;
+  removeReceiptFile: (depositId: string) => Promise<Result>;
   handleDefect: (id: string, ok: boolean, rejectReason?: string) => void;
   assignWaiting: (leadId: string, advertiserId: string) => Result;
   assignWaitingToGroup: (leadId: string, groupId: string) => Result;
@@ -89,7 +94,7 @@ const EMPTY: State = {
     paused: false,
     incentivePerDb: 11000,
     bankAccount: { bank: "", number: "", holder: "" },
-    solapi: { apiKey: "", channel: "", sender: "" },
+    solapi: { apiKey: "", channel: "", pfId: "", sender: "" },
     connections: [],
   },
 };
@@ -248,6 +253,31 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       approveMember: (kind, id, ok) => run({ type: "approveMember", kind, id, ok }),
       setMemberStatus: (kind, id, status) => run({ type: "setMemberStatus", kind, id, status }),
       handleDeposit: (id, ok) => run({ type: "handleDeposit", id, ok }),
+      setReceiptStatus: (depositId, issued) => run({ type: "setReceiptStatus", depositId, issued }),
+      async attachReceiptFile(depositId, file) {
+        try {
+          const form = new FormData();
+          form.append("deposit", depositId);
+          form.append("file", file);
+          // multipart는 브라우저가 content-type(경계값 포함)을 직접 정하게 둔다.
+          const res = await fetch("/api/receipt-file", { method: "POST", body: form });
+          if (!res.ok) return ((await res.json().catch(() => ({}))) as { error?: string }).error ?? "파일을 올리지 못했습니다.";
+          await refresh();
+          return null;
+        } catch {
+          return OFFLINE;
+        }
+      },
+      async removeReceiptFile(depositId) {
+        try {
+          const res = await fetch(`/api/receipt-file?deposit=${encodeURIComponent(depositId)}`, { method: "DELETE" });
+          if (!res.ok) return ((await res.json().catch(() => ({}))) as { error?: string }).error ?? "파일을 지우지 못했습니다.";
+          await refresh();
+          return null;
+        } catch {
+          return OFFLINE;
+        }
+      },
       handleDefect: (id, ok, rejectReason) => run({ type: "handleDefect", id, ok, rejectReason }),
       assignWaiting: (leadId, advertiserId) => act({ type: "assignWaiting", leadId, advertiserId }),
       assignWaitingToGroup: (leadId, groupId) => act({ type: "assignWaitingToGroup", leadId, groupId }),

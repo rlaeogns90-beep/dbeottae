@@ -1,5 +1,6 @@
 "use client";
 
+import { ReceiptFileCell, ReceiptStatusToggle } from "@/components/receipt";
 import { Badge, Button, Card, CardHeader, Empty, PageHeader, Table, td, th } from "@/components/ui";
 import { dateTime, won } from "@/lib/format";
 import { useStore } from "@/lib/store";
@@ -54,7 +55,7 @@ export default function DepositsPage() {
       </Card>
 
       <Card>
-        <CardHeader title="처리 내역" />
+        <CardHeader title="처리 내역" desc="입금이 확인된 건은 증빙(세금계산서·현금영수증)을 발행한 뒤 '발행완료'로 바꾸고, 발행 파일을 첨부하면 광고주 화면에도 보입니다" />
         {done.length === 0 ? (
           <Empty title="처리 내역이 없습니다" />
         ) : (
@@ -64,18 +65,22 @@ export default function DepositsPage() {
                 <th className={th}>처리 시각</th>
                 <th className={th}>광고주</th>
                 <th className={th}>입금자명</th>
+                <th className={th}>증빙</th>
                 <th className={`${th} text-right`}>금액</th>
                 <th className={th}>결과</th>
+                <th className={th}>발행 파일</th>
               </tr>
             </thead>
             <tbody>
               {done.map((d) => (
                 <tr key={d.id}>
-                  <td className={`${td} tabular`}>{dateTime(d.handledAt ?? d.at)}</td>
-                  <td className={td}>{adv(d.advertiserId).name}</td>
-                  <td className={td}>{d.depositor}</td>
-                  <td className={`${td} tabular text-right`}>{won(d.amount)}</td>
-                  <td className={td}>{d.status === "approved" ? <Badge tone="green">반영 · 증빙 발행</Badge> : <Badge tone="red">반려</Badge>}</td>
+                  <td className={`${td} tabular whitespace-nowrap`}>{dateTime(d.handledAt ?? d.at)}</td>
+                  <td className={`${td} whitespace-nowrap`}>{adv(d.advertiserId).name}</td>
+                  <td className={`${td} whitespace-nowrap`}>{d.depositor}</td>
+                  <td className={`${td} whitespace-nowrap`}>{adv(d.advertiserId).receiptType === "tax" ? "세금계산서" : "현금영수증"}</td>
+                  <td className={`${td} tabular whitespace-nowrap text-right`}>{won(d.amount)}</td>
+                  <td className={td}>{d.status === "approved" ? <ReceiptStatusToggle d={d} /> : <Badge tone="red">반려</Badge>}</td>
+                  <td className={td}>{d.status === "approved" ? <ReceiptFileCell d={d} /> : <span className="text-mute">-</span>}</td>
                 </tr>
               ))}
             </tbody>
