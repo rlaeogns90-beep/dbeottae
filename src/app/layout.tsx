@@ -23,6 +23,8 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image", title: "DB어때(디비어때) · 자동차 단독 DB", description, images: ["/og.png"] },
   formatDetection: { telephone: false },
+  // 검색엔진 사이트 소유 확인 (네이버 서치어드바이저)
+  verification: { other: { "naver-site-verification": "b24682efea403ccb7e30262181e4597680601f6d" } },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
