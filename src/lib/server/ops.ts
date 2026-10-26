@@ -113,7 +113,8 @@ export async function restoreBackup(id: number) {
 
 /** 관리자 전용 API에서: 로그인한 관리자(필요하면 마스터)를 돌려주고, 아니면 null */
 export async function adminFrom(req: Request, needMaster = false) {
-  const { readToken, stillValid } = await import("./auth");
+  const { crossSite, readToken, stillValid } = await import("./auth");
+  if (req.method !== "GET" && crossSite(req)) return null;
   const who = readToken(req);
   if (who?.role !== "admin") return null;
   const { data } = await loadState();

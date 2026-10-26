@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { SITE_URL } from "@/lib/site";
 import { StoreProvider } from "@/lib/store";
 import "./globals.css";
@@ -27,7 +28,9 @@ export const metadata: Metadata = {
   verification: { other: { "naver-site-verification": "b24682efea403ccb7e30262181e4597680601f6d" } },
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+// 요청마다 보안 정책의 일회용 코드(nonce)가 달라서 모든 페이지를 요청 시점에 그린다.
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  await headers();
   return (
     <html lang="ko">
       <head>

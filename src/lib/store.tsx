@@ -9,7 +9,8 @@ import type { SignupInput } from "./accounts";
 import { runAction, type Action } from "./actions";
 import type { Advertiser, Assignment, DefectReason, Lead, MemberStatus, Partner, Session, Settings, State } from "./types";
 
-const SESSION_KEY = "dbeottae:session";
+// 예전 버전이 브라우저 저장소에 두던 로그인 정보 (이제는 HttpOnly 쿠키만 쓰므로 지운다)
+const LEGACY_SESSION_KEY = "dbeottae:session";
 const POLL_MS = 4000;
 
 type Result = string | null;
@@ -93,15 +94,6 @@ const EMPTY: State = {
   },
 };
 
-function readSession(): Session | null {
-  try {
-    const raw = localStorage.getItem(SESSION_KEY);
-    const s = raw ? (JSON.parse(raw) as Session) : null;
-    return s?.token ? s : null;
-  } catch {
-    return null;
-  }
-}
 
 const json = { "content-type": "application/json" };
 const OFFLINE = "서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.";
@@ -119,27 +111,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const queue = useRef<Promise<void>>(Promise.resolve());
   const pending = useRef(0);
 
-  const headers = useCallback(() => {
-    const h: Record<string, string> = { ...json };
-    if (sessionRef.current?.token) h.authorization = `Bearer ${sessionRef.current.token}`;
-    return h;
-  }, []);
+  // 로그인 토큰은 HttpOnly 쿠키로 자동으로 붙는다. 화면 코드는 토큰을 볼 수 없다.
+  const headers = useCallback(() => ({ ...json }), []);
 
   const saveSession = useCallback((s: Session | null) => {
     sessionRef.current = s;
     setSession(s);
-    try {
-      if (s) localStorage.setItem(SESSION_KEY, JSON.stringify(s));
-      else localStorage.removeItem(SESSION_KEY);
-    } catch {}
   }, []);
 
   const refresh = useCallback(async () => {
     try {
       const res = await fetch("/api/state", { headers: headers(), cache: "no-store" });
       if (!res.ok) return;
-      const body = (await res.json()) as { data: State; alerts?: AdminAlert[]; session: "ok" | "expired" | "none" };
-      if (body.session === "expired") saveSession(null);
+      const body = (await res.json()) as { data: State; alerts?: AdminAlert[]; me: Session | null };
+      if (body.me?.role !== sessionRef.current?.role || body.me?.id !== sessionRef.current?.id) saveSession(body.me);
       setAlerts(body.alerts ?? []);
       if (pending.current > 0) return;
       stateRef.current = body.data;
@@ -150,8 +135,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [headers, saveSession]);
 
   useEffect(() => {
-    sessionRef.current = readSession();
-    setSession(sessionRef.current);
+    try {
+      localStorage.removeItem(LEGACY_SESSION_KEY);
+    } catch {}
     refresh();
     const poll = setInterval(() => {
       if (document.visibilityState === "visible") refresh();
@@ -220,9 +206,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       async login(loginId, password) {
         try {
           const res = await fetch("/api/login", { method: "POST", headers: json, body: JSON.stringify({ loginId, password }) });
-          const body = (await res.json()) as { error?: string; role: Session["role"]; id: string; token: string };
+          const body = (await res.json()) as { error?: string; role: Session["role"]; id: string };
           if (!res.ok || body.error) return { error: body.error ?? "로그인하지 못했습니다." };
-          saveSession({ role: body.role, id: body.id, token: body.token });
+          saveSession({ role: body.role, id: body.id });
           await refresh();
           return { role: body.role };
         } catch {
@@ -231,7 +217,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       },
       logout() {
         saveSession(null);
-        refresh();
+        fetch("/api/logout", { method: "POST" }).finally(() => refresh());
       },
       async signupAdvertiser(a) {
         try {
@@ -245,10 +231,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       async changeMyPassword(current, next) {
         try {
           const res = await fetch("/api/password", { method: "POST", headers: headers(), body: JSON.stringify({ current, next }) });
-          const body = (await res.json()) as { error?: string; token?: string };
+          const body = (await res.json()) as { error?: string };
           if (!res.ok) return body.error ?? "비밀번호를 바꾸지 못했습니다.";
-          // 다른 기기의 로그인은 끊기고, 지금 기기는 새 토큰으로 이어간다.
-          if (body.token && sessionRef.current) saveSession({ ...sessionRef.current, token: body.token });
+          // 다른 기기의 로그인은 끊기고, 지금 기기는 서버가 새로 준 쿠키로 이어간다.
           return null;
         } catch {
           return OFFLINE;

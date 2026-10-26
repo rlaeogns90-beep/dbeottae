@@ -1,6 +1,6 @@
 // 로그인. 같은 IP는 15분에 20번, 같은 아이디는 15분에 5번 틀리면 잠깐 막는다.
 import { checkLogin } from "@/lib/accounts";
-import { findUser, issueToken } from "@/lib/server/auth";
+import { crossSite, findUser, issueToken, sessionCookie } from "@/lib/server/auth";
 import { loadState } from "@/lib/server/db";
 import { alert, audit, clearFailures, clientIp, countFailure, guarded, overLimit, tooMany } from "@/lib/server/ops";
 import { verifyPassword } from "@/lib/server/password";
@@ -8,6 +8,7 @@ import { verifyPassword } from "@/lib/server/password";
 const WINDOW = 15 * 60;
 
 export const POST = guarded("로그인", async (req) => {
+  if (crossSite(req)) return Response.json({ error: "잘못된 요청입니다." }, { status: 403 });
   const ip = clientIp(req);
   const body = (await req.json().catch(() => ({}))) as { loginId?: unknown; password?: unknown };
   const loginId = String(body.loginId ?? "").slice(0, 50);
@@ -28,5 +29,6 @@ export const POST = guarded("로그인", async (req) => {
   await clearFailures(`login-fail:${loginId}`);
   const user = findUser(data, r) as { name: string; tv?: number };
   if (r.role === "admin") await audit({ actor: user.name, role: "admin", action: "관리자 로그인", ip });
-  return Response.json({ role: r.role, id: r.id, token: issueToken(r.role, r.id, user.tv ?? 0) });
+  // 토큰은 응답 본문에 싣지 않고 HttpOnly 쿠키로만 보낸다.
+  return Response.json({ role: r.role, id: r.id }, { headers: { "set-cookie": sessionCookie(r.role, issueToken(r.role, r.id, user.tv ?? 0)) } });
 });

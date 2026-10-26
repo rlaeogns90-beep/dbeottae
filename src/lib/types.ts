@@ -155,8 +155,6 @@ export interface Settings {
 export interface Session {
   role: "advertiser" | "partner" | "admin";
   id: string;
-  /** 서버가 발급한 로그인 토큰 */
-  token?: string;
 }
 
 export interface State {

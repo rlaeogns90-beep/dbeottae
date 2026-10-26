@@ -1,12 +1,13 @@
 // 내 비밀번호 바꾸기: 지금 비밀번호를 확인한 뒤 저장하고, 다른 기기의 로그인은 모두 끊는다.
 import { MIN_PASSWORD } from "@/lib/actions";
-import { issueToken, readToken, stillValid } from "@/lib/server/auth";
+import { crossSite, issueToken, readToken, sessionCookie, stillValid } from "@/lib/server/auth";
 import { loadState, mutate } from "@/lib/server/db";
 import { audit, clientIp, guarded, overLimit, tooMany } from "@/lib/server/ops";
 import { verifyPassword } from "@/lib/server/password";
 import type { State } from "@/lib/types";
 
 export const POST = guarded("비밀번호 변경", async (req) => {
+  if (crossSite(req)) return Response.json({ error: "잘못된 요청입니다." }, { status: 403 });
   const who = readToken(req);
   if (!who || !stillValid((await loadState()).data, who)) return Response.json({ error: "다시 로그인해 주세요." }, { status: 401 });
   if (await overLimit(`password:${who.id}`, 5, 15 * 60)) return tooMany(15);
@@ -25,5 +26,5 @@ export const POST = guarded("비밀번호 변경", async (req) => {
   if ("error" in result) return Response.json(result, { status: 400 });
   await audit({ actor: result.name, role: who.role, action: "비밀번호 변경", ip: clientIp(req) });
   // 지금 쓰는 기기는 새 토큰으로 계속 로그인 상태를 유지한다.
-  return Response.json({ ok: true, token: issueToken(who.role, who.id, result.tv) });
+  return Response.json({ ok: true }, { headers: { "set-cookie": sessionCookie(who.role, issueToken(who.role, who.id, result.tv)) } });
 });

@@ -38,6 +38,7 @@ const jsonLd = [
 ];
 
 export default function Home() {
+  // JSON-LD는 실행되는 스크립트가 아니라 데이터라서 보안 정책(nonce)이 필요 없다.
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\u003c") }} />

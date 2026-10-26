@@ -1,5 +1,6 @@
 // 로그인 토큰: {role, id, 토큰 버전, 만료}를 서명해 둔 문자열. 비밀값은 AUTH_SECRET 환경변수.
 // 비밀번호를 바꾸면 계정의 토큰 버전(tv)이 올라가 예전 토큰은 더 이상 통하지 않는다.
+// 토큰은 자바스크립트가 읽을 수 없는 HttpOnly 쿠키에만 담는다 (화면 코드에는 보이지 않음).
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { Session, State } from "../types";
@@ -21,8 +22,37 @@ export function issueToken(role: Session["role"], id: string, tv: number) {
   return `${body}.${sign(body)}`;
 }
 
+export const COOKIE = "dbe_session";
+
+/** 로그인 쿠키: HttpOnly(스크립트 접근 불가) · Secure(HTTPS만) · SameSite=Lax(다른 사이트에서 보낸 요청에는 안 붙음) */
+export function sessionCookie(role: Session["role"], token: string) {
+  return `${COOKIE}=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${Math.floor(TTL[role] / 1000)}`;
+}
+export const clearCookie = () => `${COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
+
+function tokenFrom(req: Request) {
+  const fromCookie = (req.headers.get("cookie") ?? "")
+    .split(";")
+    .map((c) => c.trim())
+    .find((c) => c.startsWith(`${COOKIE}=`))
+    ?.slice(COOKIE.length + 1);
+  // 쿠키가 없으면 Authorization 헤더도 받는다 (서버 점검 스크립트용)
+  return fromCookie || req.headers.get("authorization")?.replace(/^Bearer /, "");
+}
+
+/** 다른 사이트에서 보낸 변경 요청(CSRF)을 거절한다. 브라우저는 다른 사이트 요청에 Origin을 붙인다. */
+export function crossSite(req: Request) {
+  const origin = req.headers.get("origin");
+  if (!origin) return false;
+  try {
+    return new URL(origin).host !== (req.headers.get("x-forwarded-host") ?? req.headers.get("host"));
+  } catch {
+    return true;
+  }
+}
+
 export function readToken(req: Request): Who | null {
-  const token = req.headers.get("authorization")?.replace(/^Bearer /, "");
+  const token = tokenFrom(req);
   if (!token) return null;
   const [body, sig] = token.split(".");
   if (!body || !sig) return null;

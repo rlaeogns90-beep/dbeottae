@@ -1,6 +1,6 @@
 // 변경 작업 1건을 받아 권한·형식을 확인하고 최신 상태에 적용해 저장한다. 관리자 작업은 기록을 남긴다.
 import { runAction, type Action } from "@/lib/actions";
-import { findUser, readToken, stillValid } from "@/lib/server/auth";
+import { crossSite, findUser, readToken, stillValid } from "@/lib/server/auth";
 import { loadState, mutate } from "@/lib/server/db";
 import { audit, clientIp, guarded, overLimit, tooMany } from "@/lib/server/ops";
 
@@ -20,6 +20,7 @@ const describe = (a: Action) => {
 };
 
 export const POST = guarded("작업 저장", async (req) => {
+  if (crossSite(req)) return Response.json({ error: "잘못된 요청입니다." }, { status: 403 });
   const who = readToken(req);
   if (!who) return Response.json({ error: "다시 로그인해 주세요." }, { status: 401 });
   if (await overLimit(`action:${who.id}`, 120, 60)) return tooMany(1);

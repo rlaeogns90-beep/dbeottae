@@ -12,5 +12,12 @@ export const GET = guarded("상태 읽기", async (req) => {
   const who = readToken(req);
   const valid = who && stillValid(data, who) ? who : null;
   const alerts = valid?.role === "admin" ? await unreadAlerts() : undefined;
-  return Response.json({ rev, data: forClient(data, valid), alerts, session: valid ? "ok" : who ? "expired" : "none" });
+  return Response.json({
+    rev,
+    data: forClient(data, valid),
+    alerts,
+    // 화면은 토큰을 볼 수 없으므로 누구로 로그인했는지는 여기서 알려준다.
+    me: valid ? { role: valid.role, id: valid.id } : null,
+    session: valid ? "ok" : who ? "expired" : "none",
+  });
 });
