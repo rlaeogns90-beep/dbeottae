@@ -147,7 +147,7 @@ function render(it: Item, key: number) {
   if (it.kind === "text") return <TextBox key={key} text={it.text!} o={it.o} />;
   if (it.kind === "shape") return <Shape key={key} shape={it.shape!} o={it.o} />;
   // eslint-disable-next-line @next/next/no-img-element
-  if (it.kind === "image") return <img key={key} src={it.src} alt="" style={{ ...box(it.o), objectFit: "fill" }} />;
+  if (it.kind === "image") return <img key={key} src={it.src} alt="" loading="lazy" decoding="async" style={{ ...box(it.o), objectFit: "fill" }} />;
   if (it.kind === "table") return <Table key={key} rows={it.rows!} o={it.o} />;
   return null;
 }
