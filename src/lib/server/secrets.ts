@@ -10,7 +10,7 @@ const masked = (l: Lead): Lead => ({ id: l.id, name: maskMiddle(l.name), phone: 
 /** 광고주·영업자·비로그인에게 보여도 되는 설정만 */
 const publicSettings = (s: Settings): Settings => ({
   ...s,
-  solapi: { apiKey: "", channel: "", pfId: "", sender: "" },
+  solapi: { channel: "", pfId: "", sender: "", templateInquiry: "", templateStats: "", statsPhone: "", enabled: false, statsEnabled: false },
   connections: [],
   lastGroupId: undefined,
 });
@@ -22,7 +22,11 @@ export function forClient(s: State, who: Session | null): State {
 
   if (!who) return { ...s, ...empty, leads: s.leads.map(masked), settings: publicSettings(s.settings) };
 
-  if (who.role === "admin") return { ...s, advertisers: noPw(s.advertisers), partners: noPw(s.partners), admins: noPw(s.admins) };
+  if (who.role === "admin") {
+    // API Key·Secret은 화면으로 보내지 않고, 서버에 등록됐는지만 알려준다.
+    const solapi = { ...s.settings.solapi, apiKey: "", keyReady: !!(process.env.SOLAPI_API_KEY && process.env.SOLAPI_API_SECRET) };
+    return { ...s, advertisers: noPw(s.advertisers), partners: noPw(s.partners), admins: noPw(s.admins), settings: { ...s.settings, solapi } };
+  }
 
   if (who.role === "advertiser") {
     const assignments = s.assignments.filter((a) => a.advertiserId === who.id);

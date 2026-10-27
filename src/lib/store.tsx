@@ -94,7 +94,7 @@ const EMPTY: State = {
     paused: false,
     incentivePerDb: 11000,
     bankAccount: { bank: "", number: "", holder: "" },
-    solapi: { apiKey: "", channel: "", pfId: "", sender: "" },
+    solapi: { channel: "", pfId: "", sender: "", templateInquiry: "", templateStats: "", statsPhone: "", enabled: false, statsEnabled: false },
     connections: [],
   },
 };

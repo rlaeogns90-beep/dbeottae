@@ -215,8 +215,21 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
     case "adjustWallet":
       if (!Number.isFinite(a.amount) || a.amount === 0) return { error: "조정 금액을 입력해 주세요." };
       return ok({ ...s, wallet: [{ id: uid("tx"), advertiserId: a.advertiserId, type: "adjust", amount: a.amount, at, note: `관리자 조정 · ${a.note}` }, ...s.wallet] });
-    case "updateSettings":
-      return ok({ ...s, settings: { ...s.settings, ...a.patch } });
+    case "updateSettings": {
+      const patch = { ...a.patch };
+      // 솔라피는 허용한 항목만 글자 수를 확인해 받는다 (API Key·Secret은 여기서 받지 않는다).
+      if (patch.solapi) {
+        const p = patch.solapi as Partial<State["settings"]["solapi"]>;
+        const cur = s.settings.solapi;
+        const t = (v: unknown, fallback: string, max = 80) => (typeof v === "string" && v.length <= max ? v.trim() : fallback);
+        patch.solapi = {
+          channel: t(p.channel, cur.channel, 50), pfId: t(p.pfId, cur.pfId, 60), sender: t(p.sender, cur.sender, 20),
+          templateInquiry: t(p.templateInquiry, cur.templateInquiry), templateStats: t(p.templateStats, cur.templateStats), statsPhone: t(p.statsPhone, cur.statsPhone, 20),
+          enabled: typeof p.enabled === "boolean" ? p.enabled : cur.enabled, statsEnabled: typeof p.statsEnabled === "boolean" ? p.statsEnabled : cur.statsEnabled,
+        };
+      }
+      return ok({ ...s, settings: { ...s.settings, ...patch } });
+    }
     case "addGroup":
       return ok({ ...s, groups: [...s.groups, { id: uid("g") }] });
     case "removeGroup":

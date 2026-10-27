@@ -5,6 +5,8 @@
 import { routeLead, uid } from "@/lib/engine";
 import { mutate } from "@/lib/server/db";
 import { alert, clientIp, guarded, overLimit } from "@/lib/server/ops";
+import { loadState } from "@/lib/server/db";
+import { notifyAssigned, notifyStats } from "@/lib/server/solapi";
 import type { Lead } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -78,5 +80,11 @@ export const POST = guarded("웹훅", async (req) => {
   });
 
   if (result.status !== 200) return fail(result.status, result.error, `웹훅 접수 실패 (IP ${ip})`);
+  // 새로 접수된 DB만 알림톡을 보낸다 (중복 접수는 제외). 알림이 실패해도 접수는 성공으로 돌려준다.
+  if (!result.duplicate) {
+    const { data } = await loadState();
+    await notifyAssigned(data, result.leadId).catch(() => {});
+    await notifyStats(data, result.leadId).catch(() => {});
+  }
   return Response.json({ ok: true, leadId: result.leadId, assigned: result.assigned, duplicate: result.duplicate ?? false, waitReason: result.waitReason ?? null });
 });

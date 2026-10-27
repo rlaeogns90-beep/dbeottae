@@ -3,6 +3,7 @@ import { runAction, type Action } from "@/lib/actions";
 import { crossSite, findUser, readToken, stillValid } from "@/lib/server/auth";
 import { loadState, mutate } from "@/lib/server/db";
 import { audit, clientIp, guarded, overLimit, tooMany } from "@/lib/server/ops";
+import { notifyAssigned } from "@/lib/server/solapi";
 
 const LABEL: Record<Action["type"], string> = {
   setReceiving: "수신 ON/OFF", requestDeposit: "충전 요청", updateAssignment: "상담 상태·메모", reportDefect: "불량 신청",
@@ -35,6 +36,11 @@ export const POST = guarded("작업 저장", async (req) => {
     return "error" in r ? { state: s, result: r.error } : { state: r.state, result: null };
   });
   if (error) return Response.json({ error }, { status: 400 });
+  // 관리자가 대기 DB를 직접 배정했을 때도 해당 광고주에게 문의 접수 알림톡을 보낸다.
+  if ((action.type === "assignWaiting" || action.type === "assignWaitingToGroup") && who.role === "admin") {
+    const { data: fresh } = await loadState();
+    await notifyAssigned(fresh, action.leadId).catch(() => {});
+  }
   if (who.role === "admin") {
     const { type, detail } = describe(action);
     await audit({ actor: (findUser(data, who) as { name: string }).name, role: "admin", action: type, detail, ip: clientIp(req) });

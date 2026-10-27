@@ -155,7 +155,11 @@ export function seed(now = Date.now()): State {
       incentivePerDb: 11000,
       bankAccount: { bank: "신한은행", number: "110-485-219078", holder: "마케팅을다루다" },
       lastGroupId: "g1",
-      solapi: { apiKey: "", channel: "마케팅을다루다", pfId: "KA01PF231027070112916rZ1c03DoQgk", sender: "1600-7628" },
+      solapi: {
+        channel: "마케팅을다루다", pfId: "KA01PF231027070112916rZ1c03DoQgk", sender: "1600-7628",
+        templateInquiry: "KA01TP240221085145087EWd23I6kBxQ", templateStats: "KA01TP240221091902113NoW7UVNJGpM",
+        statsPhone: "", enabled: false, statsEnabled: false,
+      },
       connections: [
         { id: "cn0", name: "제피어 · 메타 잠재고객", type: "landing", key: "lk_seed0000", active: true },
         { id: "cn1", name: "장기렌트 견적 사이트", type: "landing", key: "lk_7f3a9c21", active: true },

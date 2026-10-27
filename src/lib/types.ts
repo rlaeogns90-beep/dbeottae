@@ -161,8 +161,29 @@ export interface Settings {
   bankAccount: { bank: string; number: string; holder: string };
   /** 마지막으로 자동 배정한 그룹. 다음 DB는 그다음 번호 그룹부터 찾는다. */
   lastGroupId?: string;
-  /** pfId: 솔라피에 연결된 카카오톡 채널의 발신 프로필 ID(PFID) */
-  solapi: { apiKey: string; channel: string; pfId: string; sender: string };
+  /**
+   * 솔라피 알림톡 설정. API Key·Secret은 서버 환경변수(SOLAPI_API_KEY·SOLAPI_API_SECRET)에만 두고 여기에는 두지 않는다.
+   * keyReady는 서버가 환경변수 유무를 알려주는 읽기 전용 값이다.
+   */
+  solapi: {
+    channel: string;
+    /** 솔라피에 연결된 카카오톡 채널의 발신 프로필 ID(PFID) */
+    pfId: string;
+    /** 알림톡 실패 시 문자로 보내는 발신번호 (솔라피에 등록된 번호) */
+    sender: string;
+    /** 문의 접수 알림톡 템플릿(직원용): 새 DB가 배정되면 해당 광고주에게 */
+    templateInquiry: string;
+    /** 통계 알림 템플릿(관리자용): 새 DB가 접수되면 관리자에게 */
+    templateStats: string;
+    /** 통계 알림을 받을 관리자 휴대폰 번호 */
+    statsPhone: string;
+    /** 알림톡 발송 전체 켜기·끄기 */
+    enabled: boolean;
+    /** 통계 알림만 따로 켜기·끄기 */
+    statsEnabled: boolean;
+    apiKey?: string;
+    keyReady?: boolean;
+  };
   connections: Connection[];
 }
 
