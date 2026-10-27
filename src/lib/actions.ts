@@ -36,7 +36,7 @@ export type ActionResult = { state: State } | { error: string };
 const ADVERTISER_ACTIONS = new Set<Action["type"]>(["setReceiving", "requestDeposit", "updateAssignment", "reportDefect"]);
 const MASTER_ACTIONS = new Set<Action["type"]>(["createAdmin", "deleteAdmin"]);
 
-export const MIN_PASSWORD = 8;
+export const MIN_PASSWORD = 4;
 
 const CONSULT_VALUES = ["대기", "견적발송", "계약", "관리", "계약취소"];
 export const LOGIN_ID = /^[a-zA-Z0-9_]{4,20}$/;
