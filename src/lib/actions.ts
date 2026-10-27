@@ -1,5 +1,6 @@
 // 화면에서 하는 모든 변경 작업. 브라우저(미리 반영)와 서버(실제 저장)가 같은 함수를 쓰고,
 // 서버에서는 이 함수가 권한까지 확인한 결과만 저장한다.
+import { isIndustry } from "./content";
 import { assign, checkAdvertiser, reopenAt, routeLead, uid } from "./engine";
 import type { Advertiser, Assignment, DefectReason, Lead, MemberStatus, Session, Settings, State } from "./types";
 
@@ -206,10 +207,10 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
     case "updateAdvertiser": {
       // 아이디·비밀번호·가입 정보는 이 작업으로 바꾸지 않는다.
       // 관리자가 바꿀 수 있는 항목만 받는다 (아이디·비밀번호·가입 정보는 이 작업으로 바꾸지 않는다).
-      const allowed = ["name", "phone", "company", "referrer", "tax", "receiving", "offAt", "offBy"] as const;
+      const allowed = ["name", "phone", "company", "industry", "referrer", "tax", "receiving", "offAt", "offBy"] as const;
       const patch: Partial<Advertiser> = {};
       for (const k of allowed) if (k in a.patch) (patch as Record<string, unknown>)[k] = a.patch[k];
-      if ((patch.name !== undefined && !str(patch.name, 50)) || (patch.phone !== undefined && !str(patch.phone, 20))) return { error: "입력값을 확인해 주세요." };
+      if ((patch.name !== undefined && !str(patch.name, 50)) || (patch.phone !== undefined && !str(patch.phone, 20)) || (patch.industry !== undefined && !isIndustry(patch.industry))) return { error: "입력값을 확인해 주세요." };
       return ok({ ...s, advertisers: s.advertisers.map((x) => (x.id === a.id ? { ...x, ...patch } : x)) });
     }
     case "adjustWallet":

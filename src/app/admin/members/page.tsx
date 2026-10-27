@@ -21,6 +21,7 @@ export default function MembersPage() {
             const rows: [string, string][] = [
               ["아이디", a.loginId],
               ["DB 수신 번호", a.phone],
+              ["업종", a.industry ?? "-"],
               ["회사명", a.company ?? "-"],
               ["추천인", `${a.referrer}${referrer ? ` (${referrer.name})` : " · 등록되지 않은 코드"}`],
               ...(a.receiptType === "tax"

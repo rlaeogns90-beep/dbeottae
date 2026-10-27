@@ -1,5 +1,6 @@
 // 로그인·가입 규칙. 서버 API에서 쓰는 순수 함수들 (비밀번호 비교 방식은 서버가 넘겨준다).
 import { MIN_PASSWORD } from "./actions";
+import { isIndustry } from "./content";
 import { uid } from "./engine";
 import type { Advertiser, Session, State } from "./types";
 
@@ -30,6 +31,7 @@ export function signup(s: State, a: SignupInput): { error: string } | { state: S
   if (typeof a.loginId !== "string" || !/^\S{1,30}$/.test(a.loginId)) return { error: "아이디를 입력해 주세요. (공백 없이 30자까지)" };
   if (loginIdTaken(s, a.loginId)) return { error: "이미 사용 중인 아이디입니다." };
   if (typeof a.password !== "string" || a.password.length < MIN_PASSWORD || a.password.length > 100) return { error: `비밀번호는 ${MIN_PASSWORD}자 이상이어야 합니다.` };
+  if (!isIndustry(a.industry)) return { error: "업종을 선택해 주세요." };
   const short = (v: unknown, max: number) => v === undefined || (typeof v === "string" && v.length <= max);
   if (![short(a.name, 50), short(a.phone, 20), short(a.company, 100), short(a.referrer, 30), short(a.tax?.email, 100), short(a.tax?.bizFileName, 200), short(a.cash?.name, 50), short(a.cash?.phone, 20)].every(Boolean))
     return { error: "입력값이 너무 깁니다." };
@@ -42,7 +44,7 @@ export function signup(s: State, a: SignupInput): { error: string } | { state: S
       advertisers: [
         ...s.advertisers,
         {
-          loginId: a.loginId, password: a.password, name: a.name, phone: a.phone, company: a.company, referrer, receiptType: a.receiptType === "cash" ? "cash" : "tax",
+          loginId: a.loginId, password: a.password, name: a.name, phone: a.phone, company: a.company, industry: a.industry, referrer, receiptType: a.receiptType === "cash" ? "cash" : "tax",
           tax: a.tax ? { bizFileName: a.tax.bizFileName, email: a.tax.email } : undefined,
           cash: a.cash ? { name: a.cash.name, phone: a.cash.phone } : undefined,
           id: uid("adv"), status: "pending", receiving: false, createdAt: new Date().toISOString(),

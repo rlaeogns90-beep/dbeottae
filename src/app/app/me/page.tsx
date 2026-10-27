@@ -11,6 +11,7 @@ export default function MePage() {
     ["아이디", adv.loginId],
     ["이름", adv.name],
     ["DB 수신 번호", adv.phone],
+    ["업종", adv.industry ?? "-"],
     ["회사명", adv.company ?? "-"],
     ["추천인", adv.referrer],
     ["가입일", fullDate(adv.createdAt)],

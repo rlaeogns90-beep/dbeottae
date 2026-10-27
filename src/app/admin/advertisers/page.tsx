@@ -4,7 +4,8 @@ import { Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { ResetPasswordButton } from "@/components/password";
-import { Badge, Button, Card, Empty, Field, Input, Modal, PageHeader, Table, Toggle, td, th } from "@/components/ui";
+import { Badge, Button, Card, Empty, Field, Input, Modal, PageHeader, Select, Table, Toggle, td, th } from "@/components/ui";
+import { industryOptions } from "@/lib/content";
 import { balanceOf, groupNo, groupOf, todayCount } from "@/lib/engine";
 import { won } from "@/lib/format";
 import { useStore } from "@/lib/store";
@@ -12,7 +13,7 @@ import type { Advertiser } from "@/lib/types";
 
 function EditModal({ adv, onClose }: { adv: Advertiser; onClose: () => void }) {
   const { state, updateAdvertiser, setMemberStatus, adjustWallet } = useStore();
-  const [f, setF] = useState({ name: adv.name, phone: adv.phone, company: adv.company ?? "", referrer: adv.referrer, email: adv.tax?.email ?? "" });
+  const [f, setF] = useState({ name: adv.name, phone: adv.phone, company: adv.company ?? "", industry: adv.industry ?? "", referrer: adv.referrer, email: adv.tax?.email ?? "" });
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
 
@@ -28,7 +29,7 @@ function EditModal({ adv, onClose }: { adv: Advertiser; onClose: () => void }) {
             className="flex-1"
             onClick={() => {
               updateAdvertiser(adv.id, {
-                name: f.name, phone: f.phone, company: f.company || undefined, referrer: f.referrer.toUpperCase(),
+                name: f.name, phone: f.phone, company: f.company || undefined, industry: f.industry || undefined, referrer: f.referrer.toUpperCase(),
                 tax: adv.tax ? { ...adv.tax, email: f.email } : undefined,
               });
               onClose();
@@ -47,6 +48,12 @@ function EditModal({ adv, onClose }: { adv: Advertiser; onClose: () => void }) {
             <Field label="DB 수신 번호"><Input value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} /></Field>
             <Field label="회사명"><Input value={f.company} onChange={(e) => setF({ ...f, company: e.target.value })} /></Field>
             <Field label="추천인"><Input value={f.referrer} onChange={(e) => setF({ ...f, referrer: e.target.value })} /></Field>
+            <Field label="업종">
+              <Select value={f.industry} onChange={(e) => setF({ ...f, industry: e.target.value })}>
+                {!f.industry && <option value="">선택 안 함</option>}
+                {industryOptions.map((o) => <option key={o.name} value={o.name}>{o.name}</option>)}
+              </Select>
+            </Field>
           </div>
           {adv.tax && <Field label="계산서 이메일"><Input value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></Field>}
         </section>
@@ -101,7 +108,7 @@ export default function AdminAdvertisers() {
   const [editing, setEditing] = useState<string | null>(null);
   const list = state.advertisers
     .filter((a) => a.status === "approved" || a.status === "suspended")
-    .filter((a) => !q || [a.name, a.company, a.phone, a.referrer, a.loginId].some((v) => v?.includes(q)));
+    .filter((a) => !q || [a.name, a.company, a.industry, a.phone, a.referrer, a.loginId].some((v) => v?.includes(q)));
   const editingAdv = state.advertisers.find((a) => a.id === editing);
 
   return (
@@ -133,7 +140,7 @@ export default function AdminAdvertisers() {
                 <tr key={a.id}>
                   <td className={td}>
                     <p className="font-semibold">{a.name} {a.status === "suspended" && <Badge tone="red">정지</Badge>}</p>
-                    <p className="text-xs text-mute">{a.company ?? a.loginId}</p>
+                    <p className="text-xs text-mute">{a.company ?? a.loginId}{a.industry ? ` · ${a.industry}` : ""}</p>
                   </td>
                   <td className={`${td} tabular`}>{a.phone}</td>
                   <td className={td}>{a.referrer}</td>

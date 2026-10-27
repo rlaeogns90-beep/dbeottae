@@ -1,4 +1,15 @@
 // 여러 화면과 검색엔진용 구조화 데이터가 함께 쓰는 고정 문구
+
+/** 광고주가 가입할 때 고르는 업종. live가 아닌 업종은 열리면 안내한다. */
+export const industryOptions: { name: string; live?: boolean }[] = [
+  { name: "신차 장기렌트", live: true },
+  { name: "중고차 수출/매입" },
+  { name: "중고차 리스" },
+  { name: "오토바이 매매" },
+  { name: "보험" },
+];
+export const isIndustry = (v: unknown): v is string => typeof v === "string" && industryOptions.some((o) => o.name === v);
+
 export const faqs: [string, string][] = [
   ["DB어때는 어떤 플랫폼인가요?", "상담이 필요한 고객과 그 고객을 찾는 광고주를 업종별로 연결하는 DB 플랫폼입니다. 모든 DB는 한 분의 광고주에게만 전달되는 1:1 단독 DB이며, 직접 상담을 신청한 구매 의사가 분명한 고객만 연결해 드립니다."],
   ["DB는 어디에서 수집되나요?", "모든 DB는 고객이 온라인에서 직접 상담을 신청하며 남긴 정보입니다. DB어때는 업종별로 10개의 브랜드 사이트를 직접 운영하고 있으며, 개인정보 제공에 동의한 신청 건만 광고주께 전달합니다."],

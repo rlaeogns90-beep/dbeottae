@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { SiteFooter } from "@/components/contact";
 import { Button, cx, Field, Input, Logo, Notice } from "@/components/ui";
+import { industryOptions } from "@/lib/content";
 import { formatPhone } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import type { ReceiptType } from "@/lib/types";
@@ -12,7 +13,7 @@ import type { ReceiptType } from "@/lib/types";
 export default function SignupPage() {
   const { signupAdvertiser } = useStore();
   const [f, setF] = useState(() => ({
-    loginId: "", password: "", name: "", phone: "", company: "",
+    loginId: "", password: "", industry: "", name: "", phone: "", company: "",
     referrer: typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("ref") ?? "" : "",
     receiptType: "tax" as ReceiptType,
     bizFileName: "", email: "",
@@ -30,6 +31,7 @@ export default function SignupPage() {
       [!f.loginId || !f.password, "아이디와 비밀번호를 입력해 주세요."],
       [f.password.length < 4, "비밀번호는 4자 이상이어야 합니다."],
       [/\s/.test(f.loginId), "아이디에는 공백을 넣을 수 없습니다."],
+      [!f.industry, "업종을 선택해 주세요."],
       [!f.name, "이름을 입력해 주세요."],
       [f.phone.replace(/\D/g, "").length < 10, "DB를 받을 연락처를 정확히 입력해 주세요."],
       [!f.referrer, "추천인 아이디는 필수입니다."],
@@ -40,7 +42,7 @@ export default function SignupPage() {
     const miss = need.find(([bad]) => bad);
     if (miss) return setError(miss[1]);
     const err = await signupAdvertiser({
-      loginId: f.loginId, password: f.password, name: f.name, phone: f.phone, company: f.company || undefined,
+      loginId: f.loginId, password: f.password, name: f.name, phone: f.phone, company: f.company || undefined, industry: f.industry,
       referrer: f.referrer, receiptType: f.receiptType,
       tax: f.receiptType === "tax" ? { bizFileName: f.bizFileName, email: f.email } : undefined,
       cash: f.receiptType === "cash" ? { name: f.cashName, phone: f.cashPhone } : undefined,
@@ -79,6 +81,31 @@ export default function SignupPage() {
             <h2 className="text-[15px] font-bold">계정</h2>
             <Field label="아이디" required><Input value={f.loginId} onChange={set("loginId")} autoComplete="username" /></Field>
             <Field label="비밀번호 (4자 이상)" required><Input type="password" value={f.password} onChange={set("password")} autoComplete="new-password" /></Field>
+          </section>
+
+          <section className="space-y-3">
+            <h2 className="text-[15px] font-bold">업종 <span className="text-bad">*</span></h2>
+            <p className="-mt-1 text-[13px] text-mute">DB를 받을 업종을 선택해 주세요.</p>
+            <div className="grid grid-cols-2 gap-2">
+              {industryOptions.map((o) => (
+                <button
+                  type="button"
+                  key={o.name}
+                  aria-pressed={f.industry === o.name}
+                  onClick={() => setF({ ...f, industry: o.name })}
+                  className={cx(
+                    "min-h-12 rounded-lg border px-3 py-2.5 text-left",
+                    f.industry === o.name ? "border-brand bg-brand-soft" : "border-line hover:bg-page",
+                  )}
+                >
+                  <p className={cx("text-sm font-semibold", f.industry === o.name ? "text-brand" : "text-ink")}>{o.name}</p>
+                  <p className="text-xs text-mute">{o.live ? "지금 받을 수 있음" : "오픈 예정"}</p>
+                </button>
+              ))}
+            </div>
+            {f.industry && !industryOptions.find((o) => o.name === f.industry)?.live && (
+              <p className="text-[13px] text-mute">아직 오픈 전인 업종입니다. 가입해 두시면 업종이 열릴 때 먼저 안내해 드립니다.</p>
+            )}
           </section>
 
           <section className="space-y-4">

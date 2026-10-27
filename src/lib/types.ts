@@ -10,6 +10,8 @@ export interface Advertiser {
   /** DB와 알림톡을 받는 번호 (1개) */
   phone: string;
   company?: string;
+  /** 가입할 때 고른 업종 */
+  industry?: string;
   /** 영업자 추천 코드 */
   referrer: string;
   receiptType: ReceiptType;
