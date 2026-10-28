@@ -166,11 +166,11 @@ export default function SignupPage() {
           <section className="space-y-2.5">
             <label className="flex items-center gap-2.5 py-1.5 text-sm">
               <input type="checkbox" checked={f.agreeTerms} onChange={set("agreeTerms")} className="h-5 w-5 shrink-0 accent-[#2659d9]" />
-              <span><span className="text-bad">[필수]</span> 이용약관 동의 (예치금 환불 불가 포함) <a href="/terms" target="_blank" rel="noreferrer" className="py-2 font-semibold text-brand underline underline-offset-2">보기</a></span>
+              <span><span className="text-bad">[필수]</span> 이용약관 동의 (예치금 환불 불가 포함) <a href="/terms" target="_blank" rel="noreferrer" className="px-1.5 py-2.5 font-semibold text-brand underline underline-offset-2">보기</a></span>
             </label>
             <label className="flex items-center gap-2.5 py-1.5 text-sm">
               <input type="checkbox" checked={f.agreePrivacy} onChange={set("agreePrivacy")} className="h-5 w-5 shrink-0 accent-[#2659d9]" />
-              <span><span className="text-bad">[필수]</span> 개인정보 수집·이용 동의 <a href="/privacy" target="_blank" rel="noreferrer" className="py-2 font-semibold text-brand underline underline-offset-2">보기</a></span>
+              <span><span className="text-bad">[필수]</span> 개인정보 수집·이용 동의 <a href="/privacy" target="_blank" rel="noreferrer" className="px-1.5 py-2.5 font-semibold text-brand underline underline-offset-2">보기</a></span>
             </label>
           </section>
 

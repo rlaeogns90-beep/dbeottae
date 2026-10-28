@@ -78,17 +78,17 @@ export function IndustryRoller({ items }: { items: IndustrySlide[] }) {
       </div>
 
       <div className="flex items-center justify-between border-t border-white/15 px-3 py-1.5 sm:px-5">
-        <button type="button" aria-label="이전 업종" onClick={() => go(i - 1)} className="flex h-9 w-9 items-center justify-center rounded-lg text-white/80 hover:bg-white/10">
+        <button type="button" aria-label="이전 업종" onClick={() => go(i - 1)} className="flex h-11 w-11 items-center justify-center rounded-lg text-white/80 hover:bg-white/10">
           <ChevronLeft size={18} />
         </button>
         <div className="flex items-center">
           {items.map((it, k) => (
-            <button key={it.name} type="button" aria-label={`${it.name} 보기`} aria-current={k === i} onClick={() => go(k)} className="flex h-9 w-7 items-center justify-center">
+            <button key={it.name} type="button" aria-label={`${it.name} 보기`} aria-current={k === i} onClick={() => go(k)} className="flex h-11 w-8 items-center justify-center">
               <span className={cx("h-1.5 rounded-full transition-all", k === i ? "w-5 bg-white" : "w-1.5 bg-white/40")} />
             </button>
           ))}
         </div>
-        <button type="button" aria-label="다음 업종" onClick={() => go(i + 1)} className="flex h-9 w-9 items-center justify-center rounded-lg text-white/80 hover:bg-white/10">
+        <button type="button" aria-label="다음 업종" onClick={() => go(i + 1)} className="flex h-11 w-11 items-center justify-center rounded-lg text-white/80 hover:bg-white/10">
           <ChevronRight size={18} />
         </button>
       </div>
