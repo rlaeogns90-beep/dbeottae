@@ -38,6 +38,12 @@ export const ensureTable = () =>
       deposit_id text primary key, name text not null, mime text not null, size int not null,
       data bytea not null, at timestamptz not null default now()
     )`;
+    // 고객센터 게시판. 익명 제보는 advertiser_id를 비워 두고(작성자를 저장하지 않음) 시각도 날짜까지만 남긴다.
+    await sql`create table if not exists support_posts (
+      id bigserial primary key, at timestamptz not null default now(), kind text not null,
+      advertiser_id text, title text not null, body text not null,
+      reply text, reply_at timestamptz, replied_by text
+    )`;
     await sql`create table if not exists app_state_backups (
       id bigserial primary key, at timestamptz not null default now(), rev int not null, data jsonb not null
     )`;

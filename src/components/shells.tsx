@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  Bell, ClipboardCheck, FileWarning, Home, Inbox, KeyRound, Layers, LogOut, Plug, ScrollText, Settings, ShieldCheck,
+  Bell, ClipboardCheck, Headset, FileWarning, Home, Inbox, KeyRound, Layers, LogOut, Plug, ScrollText, Settings, ShieldCheck,
   User, Users, Wallet, Briefcase, Clock3, Radio,
 } from "lucide-react";
 import Link from "next/link";
@@ -104,6 +104,7 @@ export function AdvertiserShell({ children }: { children: React.ReactNode }) {
     { href: "/app/leads", label: "DB 관리", icon: Inbox },
     { href: "/app/wallet", label: "예치금", icon: Wallet },
     { href: "/app/defects", label: "불량 처리", icon: FileWarning },
+    { href: "/app/support", label: "고객센터", icon: Headset },
     { href: "/app/me", label: "내 정보", icon: User },
   ];
   return (
@@ -184,6 +185,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         { href: "/admin/members", label: "가입 승인", icon: ClipboardCheck, count: pendingMembers },
         { href: "/admin/deposits", label: "입금 확인", icon: Wallet, count: pendingDeposits },
         { href: "/admin/defects", label: "불량 처리 승인", icon: FileWarning, count: pendingDefects },
+        { href: "/admin/support", label: "고객센터", icon: Headset },
       ],
     },
     {
