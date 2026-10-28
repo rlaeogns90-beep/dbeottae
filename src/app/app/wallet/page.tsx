@@ -72,6 +72,7 @@ export default function WalletPage() {
               <div className="rounded-lg bg-page px-4 py-3 text-sm">
                 <p className="text-[13px] text-sub">입금 계좌</p>
                 <p className="tabular mt-0.5 font-semibold">{state.settings.bankAccount.bank} {state.settings.bankAccount.number} · {state.settings.bankAccount.holder}</p>
+                <p className="mt-2 border-t border-line pt-2 text-[13px] leading-relaxed text-sub">현금영수증 또는 세금계산서 발행은 영업일 기준 +1일 내로 발행됩니다.</p>
               </div>
               <label className="flex items-start gap-2 text-[13px] leading-relaxed text-sub">
                 <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-[#2659d9]" />
