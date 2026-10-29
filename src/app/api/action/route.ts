@@ -8,7 +8,7 @@ import { notifyAssigned } from "@/lib/server/solapi";
 const LABEL: Record<Action["type"], string> = {
   setReceiving: "수신 ON/OFF", requestDeposit: "충전 요청", updateAssignment: "상담 상태·메모", reportDefect: "불량 신청",
   approveMember: "가입 승인/거절", setMemberStatus: "회원 상태 변경", handleDeposit: "입금 확인", setReceiptStatus: "증빙 발행 상태 변경", handleDefect: "불량 처리",
-  assignWaiting: "대기 DB 배정", assignWaitingToGroup: "대기 DB 그룹 배정", simulateLead: "테스트 DB 접수", updateAdvertiser: "광고주 정보 수정",
+  assignWaiting: "대기 DB 배정", assignWaitingToGroup: "대기 DB 그룹 배정", simulateLead: "테스트 DB 접수", deleteLead: "DB 삭제", updateAdvertiser: "광고주 정보 수정",
   adjustWallet: "예치금 조정", updateSettings: "설정 변경", addGroup: "그룹 추가", removeGroup: "그룹 삭제", setGroupAdvertiser: "그룹 광고주 지정",
   moveGroup: "그룹 순서 변경", createPartner: "영업자 계정 생성", setPassword: "비밀번호 재설정", createAdmin: "관리자 계정 생성", deleteAdmin: "관리자 계정 삭제",
 };

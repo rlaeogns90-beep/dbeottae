@@ -19,6 +19,7 @@ export type Action =
   | { type: "assignWaiting"; leadId: string; advertiserId: string }
   | { type: "assignWaitingToGroup"; leadId: string; groupId: string }
   | { type: "simulateLead"; lead: Lead }
+  | { type: "deleteLead"; id: string }
   | { type: "updateAdvertiser"; id: string; patch: Partial<Advertiser> }
   | { type: "adjustWallet"; advertiserId: string; amount: number; note: string }
   | { type: "updateSettings"; patch: Partial<Settings> }
@@ -60,6 +61,8 @@ function invalid(a: Action): string | null {
       return typeof a.depositId === "string" && typeof a.issued === "boolean" ? null : "잘못된 요청입니다.";
     case "handleDefect":
       return a.rejectReason === undefined || str(a.rejectReason, 200) ? null : "반려 사유는 200자까지 쓸 수 있습니다.";
+    case "deleteLead":
+      return str(a.id, 60) ? null : "잘못된 요청입니다.";
     case "adjustWallet":
       return money(a.amount) && str(a.note, 200) ? null : "조정 금액과 사유를 확인해 주세요.";
     case "simulateLead":
@@ -204,6 +207,24 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
     }
     case "simulateLead":
       return ok(routeLead(s, { ...a.lead, id: uid("ld"), createdAt: at, status: "waiting" }, now));
+    case "deleteLead": {
+      const lead = s.leads.find((l) => l.id === a.id);
+      if (!lead) return { error: "DB를 찾을 수 없습니다." };
+      const asgs = s.assignments.filter((x) => x.leadId === lead.id);
+      const asgIds = new Set(asgs.map((x) => x.id));
+      // 이미 결번 환급이 끝난 배정은 다시 환급하지 않는다. 나머지는 배정 때 차감한 금액을 돌려준다.
+      const refunded = new Set(s.defects.filter((d) => d.status === "approved").map((d) => d.assignmentId));
+      const refunds = asgs
+        .filter((x) => !refunded.has(x.id))
+        .map((x) => ({ id: uid("tx"), advertiserId: x.advertiserId, type: "refund" as const, amount: x.amount, at, note: `DB 삭제 환급 · ${lead.name}` }));
+      return ok({
+        ...s,
+        leads: s.leads.filter((l) => l.id !== lead.id),
+        assignments: s.assignments.filter((x) => x.leadId !== lead.id),
+        defects: s.defects.filter((d) => !asgIds.has(d.assignmentId)),
+        wallet: [...refunds, ...s.wallet],
+      });
+    }
     case "updateAdvertiser": {
       // 아이디·비밀번호·가입 정보는 이 작업으로 바꾸지 않는다.
       // 관리자가 바꿀 수 있는 항목만 받는다 (아이디·비밀번호·가입 정보는 이 작업으로 바꾸지 않는다).

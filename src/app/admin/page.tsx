@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { CONSULTS, consultTone } from "@/components/lead-parts";
@@ -21,15 +21,21 @@ const uniq = (xs: (string | undefined)[]) => [...new Set(xs.filter((x): x is str
 const emptyForm = { name: "", phone: "", car: "", memo: "", site: "", pageName: "", term: "", groupId: "" };
 
 export default function RealtimePage() {
-  const { state, now, simulateLead } = useStore();
+  const { state, now, simulateLead, deleteLead } = useStore();
   const [tab, setTab] = useState<(typeof tabs)[number]["key"]>("all");
   const [page, setPage] = useState("");
   const [site, setSite] = useState("");
   const [consult, setConsult] = useState<"" | "none" | ConsultStatus>("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [del, setDel] = useState<string | null>(null);
+  const [delError, setDelError] = useState("");
 
   const consultOf = (leadId: string) => state.assignments.find((x) => x.leadId === leadId);
+  const delLead = state.leads.find((l) => l.id === del);
+  const delAsg = delLead && consultOf(delLead.id);
+  const delAdv = delAsg && state.advertisers.find((x) => x.id === delAsg.advertiserId);
+  const delRefund = !!delAsg && !state.defects.some((d) => d.assignmentId === delAsg.id && d.status === "approved");
   const today = state.leads.filter((l) => sameDay(l.createdAt, now));
   const todaySales = state.assignments.filter((a) => sameDay(a.assignedAt, now)).reduce((n, a) => n + a.amount, 0);
   const filtered = state.leads.filter((l) => {
@@ -115,6 +121,7 @@ export default function RealtimePage() {
                 <th className={th}>배정 광고주</th>
                 <th className={th}>배정 상태</th>
                 <th className={th}>상담 상태</th>
+                <th className={th}><span className="sr-only">삭제</span></th>
               </tr>
             </thead>
             <tbody>
@@ -162,6 +169,16 @@ export default function RealtimePage() {
                       )}
                     </td>
                     <td className={td}>{a ? <Badge tone={consultTone[a.consult]}>{a.consult}</Badge> : <span className="text-mute">-</span>}</td>
+                    <td className={td}>
+                      <button
+                        type="button"
+                        aria-label={`${l.name} DB 삭제`}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-mute hover:bg-bg hover:text-bad"
+                        onClick={() => { setDelError(""); setDel(l.id); }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
                   </tr>
                 );
               })}
@@ -169,6 +186,39 @@ export default function RealtimePage() {
           </Table>
         )}
       </Card>
+
+      <Modal
+        open={!!delLead}
+        title="DB 삭제"
+        onClose={() => setDel(null)}
+        footer={
+          <>
+            <Button variant="secondary" className="flex-1" onClick={() => setDel(null)}>취소</Button>
+            <Button
+              className="flex-1"
+              onClick={() => {
+                const err = deleteLead(del!);
+                if (err) setDelError(err);
+                else setDel(null);
+              }}
+            >
+              삭제하기
+            </Button>
+          </>
+        }
+      >
+        {delLead && (
+          <div className="space-y-3 text-sm">
+            <p><b>{delLead.name}</b> · {delLead.phone} · {delLead.car || "-"}</p>
+            <Notice>
+              삭제하면 목록에서 사라지고 되돌릴 수 없습니다.
+              {delAsg && delAdv && (delRefund ? ` 배정받은 ${delAdv.name} 광고주 화면에서도 사라지고, 차감된 ${won(delAsg.amount)}이 예치금으로 환급됩니다.` : ` ${delAdv.name} 광고주 화면에서도 사라집니다. 결번 환급은 이미 처리되어 다시 환급하지 않습니다.`)}
+              {" "}구글 시트에 쌓인 기록은 지워지지 않으니 시트에서 직접 지워 주세요.
+            </Notice>
+            {delError && <p className="text-bad">{delError}</p>}
+          </div>
+        )}
+      </Modal>
 
       <Modal
         open={open}

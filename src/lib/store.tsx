@@ -59,6 +59,7 @@ interface Store {
   assignWaiting: (leadId: string, advertiserId: string) => Result;
   assignWaitingToGroup: (leadId: string, groupId: string) => Result;
   simulateLead: (lead?: Partial<Lead>) => void;
+  deleteLead: (id: string) => Result;
   updateAdvertiser: (id: string, patch: Partial<Advertiser>) => void;
   adjustWallet: (advertiserId: string, amount: number, note: string) => void;
   createAdmin: (loginId: string, password: string, name: string) => Result;
@@ -281,6 +282,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       handleDefect: (id, ok, rejectReason) => run({ type: "handleDefect", id, ok, rejectReason }),
       assignWaiting: (leadId, advertiserId) => act({ type: "assignWaiting", leadId, advertiserId }),
       assignWaitingToGroup: (leadId, groupId) => act({ type: "assignWaitingToGroup", leadId, groupId }),
+      deleteLead: (id) => act({ type: "deleteLead", id }),
       simulateLead(partial) {
         const names = ["김도현", "이수아", "박시우", "최예린", "정우진", "강하린", "조민재", "윤채원"];
         const cars = ["현대 그랜저", "기아 K8", "제네시스 G80", "기아 스포티지", "현대 팰리세이드", "기아 EV9", "BMW X3"];
