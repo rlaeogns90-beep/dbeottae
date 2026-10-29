@@ -3,6 +3,7 @@
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { BizFileButton, BizFileUpload } from "@/components/biz-file";
 import { ResetPasswordButton } from "@/components/password";
 import { Badge, Button, Card, Empty, Field, Input, Modal, PageHeader, Select, Table, Toggle, td, th } from "@/components/ui";
 import { industryOptions } from "@/lib/content";
@@ -57,6 +58,8 @@ function EditModal({ adv, onClose }: { adv: Advertiser; onClose: () => void }) {
           </div>
           {adv.tax && <Field label="계산서 이메일"><Input value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} /></Field>}
         </section>
+
+        {adv.receiptType === "tax" && <BizFileUpload adv={adv} />}
 
         <section className="flex items-center justify-between rounded-lg bg-page px-4 py-3 text-sm">
           <span className="text-sub">배정 순번</span>
@@ -128,6 +131,7 @@ export default function AdminAdvertisers() {
                 <th className={th}>광고주</th>
                 <th className={th}>DB 수신 번호</th>
                 <th className={th}>추천인</th>
+                <th className={th}>사업자등록증</th>
                 <th className={th}>순번</th>
                 <th className={th}>수신</th>
                 <th className={`${th} text-right`}>오늘</th>
@@ -144,6 +148,7 @@ export default function AdminAdvertisers() {
                   </td>
                   <td className={`${td} tabular`}>{a.phone}</td>
                   <td className={td}>{a.referrer}</td>
+                  <td className={td}><BizFileButton adv={a} /></td>
                   <td className={`${td} tabular text-[13px] text-sub`}>{groupOf(state, a.id) ? `${groupNo(state, groupOf(state, a.id)!.id)}번` : "-"}</td>
                   <td className={td}>
                     <div className="flex items-center gap-2">

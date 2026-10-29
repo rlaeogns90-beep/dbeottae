@@ -1,5 +1,6 @@
 "use client";
 
+import { BizFileButton } from "@/components/biz-file";
 import { Button, Card, Empty, PageHeader } from "@/components/ui";
 import { dateTime } from "@/lib/format";
 import { useStore } from "@/lib/store";
@@ -25,7 +26,7 @@ export default function MembersPage() {
               ["회사명", a.company ?? "-"],
               ["추천인", `${a.referrer}${referrer ? ` (${referrer.name})` : " · 등록되지 않은 코드"}`],
               ...(a.receiptType === "tax"
-                ? ([["증빙", "세금계산서"], ["사업자등록증", a.tax?.bizFileName ?? "-"], ["계산서 이메일", a.tax?.email ?? "-"]] as [string, string][])
+                ? ([["증빙", "세금계산서"], ["계산서 이메일", a.tax?.email ?? "-"]] as [string, string][])
                 : ([["증빙", "현금영수증"], ["현금영수증 정보", `${a.cash?.name} · ${a.cash?.phone}`]] as [string, string][])),
             ];
             return (
@@ -48,6 +49,12 @@ export default function MembersPage() {
                     </div>
                   ))}
                 </dl>
+                {a.receiptType === "tax" && (
+                  <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+                    <span className="text-sub">사업자등록증</span>
+                    <BizFileButton adv={a} />
+                  </div>
+                )}
               </Card>
             );
           })}

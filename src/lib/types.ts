@@ -15,7 +15,8 @@ export interface Advertiser {
   /** 영업자 추천 코드 */
   referrer: string;
   receiptType: ReceiptType;
-  tax?: { bizFileName: string; email: string };
+  /** 세금계산서. file이 있으면 사업자등록증 파일이 서버(biz_files)에 저장돼 있다 */
+  tax?: { bizFileName: string; email: string; file?: { size: number; at: string } };
   /** 현금영수증 (휴대전화번호로 발급, 주민번호는 받지 않음) */
   cash?: { name: string; phone: string };
   status: MemberStatus;

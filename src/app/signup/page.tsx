@@ -3,6 +3,7 @@
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { prepareBizFile } from "@/components/biz-file";
 import { SiteFooter } from "@/components/contact";
 import { Button, cx, Field, Input, Logo, Notice } from "@/components/ui";
 import { industryOptions } from "@/lib/content";
@@ -16,11 +17,13 @@ export default function SignupPage() {
     loginId: "", password: "", industry: "", name: "", phone: "", company: "",
     referrer: typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("ref") ?? "" : "",
     receiptType: "tax" as ReceiptType,
-    bizFileName: "", email: "",
+    email: "",
     cashName: "", cashPhone: "",
     agreeTerms: false, agreePrivacy: false,
   }));
+  const [bizFile, setBizFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setF({ ...f, [k]: e.target.type === "checkbox" ? e.target.checked : e.target.value });
@@ -35,18 +38,22 @@ export default function SignupPage() {
       [!f.name, "이름을 입력해 주세요."],
       [f.phone.replace(/\D/g, "").length < 10, "DB를 받을 연락처를 정확히 입력해 주세요."],
       [!f.referrer, "추천인 아이디는 필수입니다."],
-      [f.receiptType === "tax" && (!f.bizFileName || !f.email), "사업자등록증과 계산서 받을 이메일을 입력해 주세요."],
+      [f.receiptType === "tax" && (!bizFile || !f.email), "사업자등록증과 계산서 받을 이메일을 입력해 주세요."],
       [f.receiptType === "cash" && (!f.cashName || !f.cashPhone), "현금영수증 정보를 모두 입력해 주세요."],
       [!f.agreeTerms || !f.agreePrivacy, "필수 약관에 동의해 주세요."],
     ];
     const miss = need.find(([bad]) => bad);
     if (miss) return setError(miss[1]);
-    const err = await signupAdvertiser({
+    setSending(true);
+    setError(null);
+    const file = f.receiptType === "tax" && bizFile ? await prepareBizFile(bizFile) : undefined;
+    const err = typeof file === "string" ? file : await signupAdvertiser({
       loginId: f.loginId, password: f.password, name: f.name, phone: f.phone, company: f.company || undefined, industry: f.industry,
       referrer: f.referrer, receiptType: f.receiptType,
-      tax: f.receiptType === "tax" ? { bizFileName: f.bizFileName, email: f.email } : undefined,
+      tax: f.receiptType === "tax" && file ? { bizFileName: file.name, email: f.email } : undefined,
       cash: f.receiptType === "cash" ? { name: f.cashName, phone: f.cashPhone } : undefined,
-    });
+    }, file);
+    setSending(false);
     if (err) return setError(err);
     setDone(true);
   };
@@ -140,11 +147,11 @@ export default function SignupPage() {
             </div>
             {f.receiptType === "tax" ? (
               <>
-                <Field label="사업자등록증" required>
+                <Field label="사업자등록증" required hint="사진(JPG·PNG) 또는 PDF. 휴대폰으로 찍어 올려도 됩니다.">
                   <input
                     type="file"
                     accept="image/*,.pdf"
-                    onChange={(e) => setF({ ...f, bizFileName: e.target.files?.[0]?.name ?? "" })}
+                    onChange={(e) => setBizFile(e.target.files?.[0] ?? null)}
                     className="block w-full text-sm text-sub file:mr-3 file:h-10 file:rounded-lg file:border file:border-line file:bg-white file:px-4 file:text-sm file:font-semibold file:text-ink hover:file:bg-soft"
                   />
                 </Field>
@@ -177,7 +184,7 @@ export default function SignupPage() {
           <Notice>가입 후에는 정보를 직접 수정할 수 없습니다. 변경이 필요하면 1600-7628로 요청해 주세요.</Notice>
 
           {error && <p className="text-[13px] text-bad">{error}</p>}
-          <Button type="submit" size="lg" className="w-full">가입 신청</Button>
+          <Button type="submit" size="lg" className="w-full" disabled={sending}>{sending ? "보내는 중..." : "가입 신청"}</Button>
         </form>
       </div>
       <SiteFooter />

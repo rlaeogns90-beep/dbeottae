@@ -26,7 +26,8 @@ export function checkLogin(s: State, loginId: string, password: string, matches:
   return { role: found.role, id: found.user.id };
 }
 
-export function signup(s: State, a: SignupInput): { error: string } | { state: State } {
+/** id와 bizFile(이미 저장한 사업자등록증 정보)은 서버가 정해서 넘긴다. */
+export function signup(s: State, a: SignupInput, opts: { id?: string; bizFile?: { size: number; at: string } } = {}): { error: string } | { state: State } {
   // 가입은 간편하게: 아이디는 공백 없는 글자(한글·영문 등) 1~30자, 비밀번호는 4자 이상이면 된다.
   if (typeof a.loginId !== "string" || !/^\S{1,30}$/.test(a.loginId)) return { error: "아이디를 입력해 주세요. (공백 없이 30자까지)" };
   if (loginIdTaken(s, a.loginId)) return { error: "이미 사용 중인 아이디입니다." };
@@ -45,9 +46,9 @@ export function signup(s: State, a: SignupInput): { error: string } | { state: S
         ...s.advertisers,
         {
           loginId: a.loginId, password: a.password, name: a.name, phone: a.phone, company: a.company, industry: a.industry, referrer, receiptType: a.receiptType === "cash" ? "cash" : "tax",
-          tax: a.tax ? { bizFileName: a.tax.bizFileName, email: a.tax.email } : undefined,
+          tax: a.tax ? { bizFileName: a.tax.bizFileName, email: a.tax.email, file: opts.bizFile } : undefined,
           cash: a.cash ? { name: a.cash.name, phone: a.cash.phone } : undefined,
-          id: uid("adv"), status: "pending", receiving: false, createdAt: new Date().toISOString(),
+          id: opts.id ?? uid("adv"), status: "pending", receiving: false, createdAt: new Date().toISOString(),
         },
       ],
     },

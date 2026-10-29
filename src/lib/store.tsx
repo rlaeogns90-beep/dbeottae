@@ -39,7 +39,8 @@ interface Store {
   /** 아이디 하나로 로그인하고, 계정 종류(광고주·영업자·관리자)에 맞는 화면으로 보낸다. */
   login: (loginId: string, password: string) => Promise<{ error: string } | { role: Session["role"] }>;
   logout: () => void;
-  signupAdvertiser: (a: SignupInput) => Promise<Result>;
+  /** 세금계산서면 사업자등록증 파일(bizFile)을 같이 보낸다. */
+  signupAdvertiser: (a: SignupInput, bizFile?: File) => Promise<Result>;
   changeMyPassword: (current: string, next: string) => Promise<Result>;
   setPassword: (kind: "advertiser" | "partner" | "admin", id: string, password: string) => Result;
   createPartner: (p: Pick<Partner, "loginId" | "password" | "name" | "phone">) => Result;
@@ -55,6 +56,8 @@ interface Store {
   /** 발행 파일(PDF·PNG·JPG) 첨부 / 삭제. 실패하면 안내 문구를 돌려준다. */
   attachReceiptFile: (depositId: string, file: File) => Promise<Result>;
   removeReceiptFile: (depositId: string) => Promise<Result>;
+  /** 광고주 사업자등록증을 관리자가 올리거나 바꾼다. */
+  attachBizFile: (advertiserId: string, file: File) => Promise<Result>;
   handleDefect: (id: string, ok: boolean, rejectReason?: string) => void;
   assignWaiting: (leadId: string, advertiserId: string) => Result;
   assignWaitingToGroup: (leadId: string, groupId: string) => Result;
@@ -225,9 +228,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         saveSession(null);
         fetch("/api/logout", { method: "POST" }).finally(() => refresh());
       },
-      async signupAdvertiser(a) {
+      async signupAdvertiser(a, bizFile) {
         try {
-          const res = await fetch("/api/signup", { method: "POST", headers: json, body: JSON.stringify(a) });
+          const form = new FormData();
+          form.append("data", JSON.stringify(a));
+          if (bizFile) form.append("file", bizFile);
+          const res = await fetch("/api/signup", { method: "POST", body: form });
+          if (res.status === 413) return "파일이 너무 큽니다. 4MB 이하로 올려 주세요.";
           if (res.ok) return null;
           return ((await res.json()) as { error?: string }).error ?? "가입 신청을 보내지 못했습니다.";
         } catch {
@@ -262,6 +269,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           form.append("file", file);
           // multipart는 브라우저가 content-type(경계값 포함)을 직접 정하게 둔다.
           const res = await fetch("/api/receipt-file", { method: "POST", body: form });
+          if (!res.ok) return ((await res.json().catch(() => ({}))) as { error?: string }).error ?? "파일을 올리지 못했습니다.";
+          await refresh();
+          return null;
+        } catch {
+          return OFFLINE;
+        }
+      },
+      async attachBizFile(advertiserId, file) {
+        try {
+          const form = new FormData();
+          form.append("advertiser", advertiserId);
+          form.append("file", file);
+          const res = await fetch("/api/biz-file", { method: "POST", body: form });
           if (!res.ok) return ((await res.json().catch(() => ({}))) as { error?: string }).error ?? "파일을 올리지 못했습니다.";
           await refresh();
           return null;
