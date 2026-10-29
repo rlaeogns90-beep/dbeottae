@@ -1,13 +1,10 @@
 "use client";
 
-// 메인 화면의 운영 숫자 띠. "오늘 접수 DB"는 저장소 데이터로 계산해 실시간으로 바뀐다.
+// 메인 화면의 운영 숫자 띠. 접수·가입 숫자는 모두 실제 저장소 데이터로 계산한다.
 // PC에서는 4칸 한 줄, 모바일에서는 카드가 옆으로 계속 흘러간다.
 import { useEffect, useRef, useState } from "react";
 import { cx } from "@/components/ui";
 import { useStore } from "@/lib/store";
-
-/** 이번 달 광고주 대기 인원 (운영에서 정하는 고정값) */
-const WAITING_ADVERTISERS = 10;
 
 /** 값이 바뀌면 이전 값에서 새 값까지 0.8초 동안 올라간다. */
 function useCountUp(target: number) {
@@ -60,16 +57,22 @@ function Stat({ label, value, unit, live, className }: Item & { className?: stri
 export function LiveStats() {
   const { state, now } = useStore();
   const today = now.toDateString();
+  // 이번 주: 월요일 0시부터
+  const week = new Date(now);
+  week.setHours(0, 0, 0, 0);
+  week.setDate(week.getDate() - ((week.getDay() + 6) % 7));
   const items: Item[] = [
     { label: "오늘 접수 DB", value: state.leads.filter((l) => new Date(l.createdAt).toDateString() === today).length, unit: "건", live: true },
-    { label: "이번 달 대기 인원", value: WAITING_ADVERTISERS, unit: "명" },
+    { label: "이번 주 접수 DB", value: state.leads.filter((l) => new Date(l.createdAt) >= week).length, unit: "건" },
+    { label: "누적 접수 DB", value: state.leads.length, unit: "건" },
+    { label: "이번 달 가입 신청", value: state.pub?.signupsMonth ?? 0, unit: "명" },
     { label: "운영 브랜드 사이트", value: 10, unit: "개" },
     { label: "결번 환급", value: 100, unit: "%" },
   ];
 
   return (
     <>
-      <div className="hidden grid-cols-2 gap-3 sm:grid lg:grid-cols-4">
+      <div className="hidden grid-cols-2 gap-3 sm:grid lg:grid-cols-3">
         {items.map((it) => <Stat key={it.label} {...it} />)}
       </div>
       {/* 모바일: 같은 카드를 두 번 이어 붙여 끊김 없이 왼쪽으로 흐르게 한다 (누르고 있으면 멈춤) */}

@@ -17,7 +17,16 @@ const publicSettings = (s: Settings): Settings => ({
 
 const empty = { advertisers: [], partners: [], admins: [], assignments: [], wallet: [], deposits: [], defects: [], groups: [] };
 
-export function forClient(s: State, who: Session | null): State {
+/** 이번 달(한국 시간 기준) 광고주 가입 신청 수: 개인정보 없이 숫자만 */
+function signupsThisMonth(s: State) {
+  const kst = new Date(Date.now() + 9 * 3_600_000);
+  const start = Date.UTC(kst.getUTCFullYear(), kst.getUTCMonth(), 1) - 9 * 3_600_000;
+  return s.advertisers.filter((a) => new Date(a.createdAt).getTime() >= start).length;
+}
+
+export const forClient = (s: State, who: Session | null): State => ({ ...forRole(s, who), pub: { signupsMonth: signupsThisMonth(s) } });
+
+function forRole(s: State, who: Session | null): State {
   const noPw = <T extends { password: string }>(list: T[]) => list.map((u) => ({ ...u, password: "" }));
 
   if (!who) return { ...s, ...empty, leads: s.leads.map(masked), settings: publicSettings(s.settings) };

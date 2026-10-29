@@ -206,4 +206,6 @@ export interface State {
   defects: DefectReport[];
   groups: Group[];
   settings: Settings;
+  /** 화면에 보여도 되는 집계 (서버가 보낼 때만 채운다. 저장하지 않는다) */
+  pub?: { signupsMonth: number };
 }

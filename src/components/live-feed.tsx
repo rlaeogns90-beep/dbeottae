@@ -23,6 +23,18 @@ export function LiveFeed() {
   const [offset, setOffset] = useState(0);
   const [animate, setAnimate] = useState(true);
   const today = state.leads.filter((l) => new Date(l.createdAt).toDateString() === now.toDateString()).length;
+  const last = items[0];
+  // 최근 7일 접수 건수 (오늘 포함, 실제 접수 기록 기준)
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(now);
+    d.setDate(d.getDate() - (6 - i));
+    return { key: d.toDateString(), label: ["일", "월", "화", "수", "목", "금", "토"][d.getDay()], n: 0 };
+  });
+  for (const l of state.leads) {
+    const d = days.find((x) => x.key === new Date(l.createdAt).toDateString());
+    if (d) d.n += 1;
+  }
+  const peak = Math.max(1, ...days.map((d) => d.n));
 
   useEffect(() => {
     if (items.length <= VISIBLE) return;
@@ -56,7 +68,7 @@ export function LiveFeed() {
           </span>
           <h2 className="text-[15px] font-bold">실시간 DB 현황</h2>
         </div>
-        <span className="tabular text-[13px] text-sub">오늘 접수 {today}건</span>
+        <span className="tabular text-[13px] text-sub">오늘 접수 {today}건{last && ` · 마지막 접수 ${timeAgo(last.createdAt, now)}`}</span>
       </div>
       <div className="relative overflow-hidden" style={{ height: ROW * Math.min(VISIBLE, Math.max(items.length, 1)) }}>
         <ul
@@ -78,6 +90,18 @@ export function LiveFeed() {
             );
           })}
         </ul>
+      </div>
+      <div className="border-t border-line px-5 py-3.5">
+        <p className="mb-2 text-[13px] font-semibold text-sub">최근 7일 접수</p>
+        <div className="flex items-end gap-2" role="img" aria-label={`최근 7일 접수 ${days.map((d) => `${d.label}요일 ${d.n}건`).join(", ")}`}>
+          {days.map((d, i) => (
+            <div key={d.key} className="flex min-w-0 flex-1 flex-col items-center gap-1">
+              <span className="tabular text-xs font-semibold">{d.n}</span>
+              <span className={i === 6 ? "w-full rounded-sm bg-brand" : "w-full rounded-sm bg-soft"} style={{ height: Math.max(3, Math.round((d.n / peak) * 36)) }} />
+              <span className="text-xs text-mute">{d.label}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </Card>
   );
