@@ -68,6 +68,7 @@ export const POST = guarded("웹훅", async (req) => {
       phone,
       car,
       brand: car.split(" ")[0] || undefined,
+      industry: conn.industry,
       memo: f("car_memo", 500) || undefined,
       site: f("source", 100) || conn.name,
       pageName: f("page_name", 100) || undefined,

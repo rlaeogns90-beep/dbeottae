@@ -5,6 +5,8 @@ import { BackupsCard } from "@/components/backups";
 import { MyPasswordCard } from "@/components/password";
 import { useAdmin } from "@/components/shells";
 import { Button, Card, CardHeader, ConfirmButton, Field, Input, Notice, PageHeader, Toggle } from "@/components/ui";
+import { industryOptions } from "@/lib/content";
+import { minChargeOf, priceOf } from "@/lib/engine";
 import { won } from "@/lib/format";
 import { useStore } from "@/lib/store";
 
@@ -47,8 +49,11 @@ export default function SettingsPage() {
       <Card>
         <CardHeader title="정책 값" desc="확정된 정책입니다. 바꾸려면 개발 단계에서 함께 조정합니다." />
         <div className="divide-y divide-line">
-          <Row title="DB 단가" desc="건당 차감 금액 (VAT 포함)"><Value>{won(s.price)}</Value></Row>
-          <Row title="최소 충전 금액" desc="충전한 예치금은 환불 불가"><Value>{won(s.minCharge)}</Value></Row>
+          {industryOptions.filter((o) => o.live).map((o) => (
+            <Row key={o.name} title={`DB 단가 · ${o.name}`} desc={`건당 차감 금액 (VAT 포함) · 최소 충전 ${won(minChargeOf(state, o.name))}, 충전한 예치금은 환불 불가`}>
+              <Value>{won(priceOf(state, o.name))}</Value>
+            </Row>
+          ))}
           <Row title="배정 순서" desc="1번 그룹부터 차례대로, 그룹마다 광고주 1명"><Value>그룹 순번</Value></Row>
           <Row title="하루 한도" desc="광고주 1명이 하루에 받는 최대 건수, 넘으면 관리자 대기"><Value>{s.dailyLimit}건</Value></Row>
           <Row title="OFF 후 재개 대기" desc="광고주가 직접 끈 뒤 다시 켤 수 있을 때까지"><Value>{s.offLockHours}시간</Value></Row>

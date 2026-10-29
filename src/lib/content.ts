@@ -1,19 +1,24 @@
 // 여러 화면과 검색엔진용 구조화 데이터가 함께 쓰는 고정 문구
 
-/** 광고주가 가입할 때 고르는 업종. live가 아닌 업종은 열리면 안내한다. */
-export const industryOptions: { name: string; live?: boolean }[] = [
-  { name: "신차 장기렌트", live: true },
+/** 광고주가 가입할 때 고르는 업종. live가 아닌 업종은 열리면 안내한다. price는 건당 공급가(VAT 별도). */
+export const industryOptions: { name: string; live?: boolean; price?: number }[] = [
+  { name: "신차 장기렌트", live: true, price: 40000 },
   { name: "중고차 수출/매입" },
   { name: "중고차 리스" },
-  { name: "오토바이 매매" },
+  { name: "오토바이 매매", live: true, price: 15000 },
   { name: "보험" },
 ];
 export const isIndustry = (v: unknown): v is string => typeof v === "string" && industryOptions.some((o) => o.name === v);
 
+export const DEFAULT_INDUSTRY = "신차 장기렌트";
+/** DB를 따로 받는 업종(열려 있는 업종). 아직 열리지 않은 업종의 광고주는 신차 장기렌트 DB를 받는다. */
+export const laneOf = (industry?: string) =>
+  industryOptions.some((o) => o.live && o.name === industry) ? industry! : DEFAULT_INDUSTRY;
+
 export const faqs: [string, string][] = [
   ["DB어때는 어떤 플랫폼인가요?", "상담이 필요한 고객과 그 고객을 찾는 광고주를 업종별로 연결하는 DB 플랫폼입니다. 모든 DB는 한 분의 광고주에게만 전달되는 1:1 단독 DB이며, 직접 상담을 신청한 구매 의사가 분명한 고객만 연결해 드립니다."],
   ["DB는 어디에서 수집되나요?", "모든 DB는 고객이 온라인에서 직접 상담을 신청하며 남긴 정보입니다. DB어때는 업종별로 10개의 브랜드 사이트를 직접 운영하고 있으며, 개인정보 제공에 동의한 신청 건만 광고주께 전달합니다."],
-  ["가격은 얼마인가요?", "신차 장기렌트 DB 기준으로 1건에 40,000원(VAT 별도)입니다. 10건분부터 충전하고, DB를 받을 때마다 1건씩 차감됩니다. 충전한 예치금은 환불되지 않습니다. 나머지 업종의 가격은 현재 협의 중이며, 업종이 열리면 안내해 드립니다."],
+  ["가격은 얼마인가요?", "신차 장기렌트 DB는 1건에 40,000원, 오토바이 매매 DB는 1건에 15,000원입니다(모두 VAT 별도). 10건분부터 충전하고, DB를 받을 때마다 1건씩 차감됩니다. 충전한 예치금은 환불되지 않습니다. 나머지 업종의 가격은 현재 협의 중이며, 업종이 열리면 안내해 드립니다."],
   ["DB는 얼마나 빨리 오나요?", "고객이 신청하면 10초 안에 카카오 알림톡으로 도착합니다. 같은 DB는 사이트의 DB 관리 화면에서도 바로 볼 수 있습니다."],
   ["원할 때만 받을 수 있나요?", "네. 수신 ON/OFF를 직접 켜고 끌 수 있습니다. 시간대 지정은 없고, 끈 뒤 24시간이 지나면 다시 켤 수 있습니다. 예치금을 다 쓰면 자동으로 꺼집니다."],
   ["다른 사람도 같은 DB를 받나요?", "아니요. 한 신청 건은 한 명에게만 보냅니다. 같은 번호가 다시 들어와도 이미 받은 분에게는 다시 보내지 않습니다."],

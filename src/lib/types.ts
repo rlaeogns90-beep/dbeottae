@@ -70,6 +70,8 @@ export interface Lead {
   /** 광고소재명 (웹훅 term) */
   term?: string;
   brand?: string;
+  /** 업종 (들어온 연결의 업종). 없으면 신차 장기렌트 */
+  industry?: string;
   groupId?: string;
   createdAt: string;
   status: LeadStatus;
@@ -150,6 +152,8 @@ export interface Connection {
   type: "landing" | "admin";
   key: string;
   active: boolean;
+  /** 이 연결로 들어오는 DB의 업종. 없으면 신차 장기렌트 */
+  industry?: string;
 }
 
 export interface Settings {

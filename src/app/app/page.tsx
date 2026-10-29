@@ -6,7 +6,7 @@ import { LeadRow } from "@/components/lead-parts";
 import { LiveFeed } from "@/components/live-feed";
 import { useAdvertiser } from "@/components/shells";
 import { Button, Card, CardHeader, Empty, Modal, Notice, Toggle } from "@/components/ui";
-import { balanceOf, reopenAt, todayCount } from "@/lib/engine";
+import { balanceOf, priceOf, reopenAt, todayCount } from "@/lib/engine";
 import { remaining, won } from "@/lib/format";
 import { useStore } from "@/lib/store";
 
@@ -17,7 +17,7 @@ export default function AdvertiserHome() {
   const [error, setError] = useState<string | null>(null);
 
   const balance = balanceOf(state, adv.id);
-  const left = Math.floor(balance / state.settings.price);
+  const left = Math.floor(balance / priceOf(state, adv.industry));
   const today = todayCount(state, adv.id, now);
   const lockUntil = reopenAt(state, adv);
   const lockLeft = lockUntil ? remaining(lockUntil, now) : null;

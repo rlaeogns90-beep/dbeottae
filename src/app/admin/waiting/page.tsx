@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { carLine } from "@/components/lead-parts";
 import { Badge, Button, Card, Empty, Notice, PageHeader, Select } from "@/components/ui";
+import { laneOf } from "@/lib/content";
 import { balanceOf, checkAdvertiser, todayCount, type Ineligible } from "@/lib/engine";
 import { dateTime, timeAgo, won } from "@/lib/format";
 import { useStore } from "@/lib/store";
@@ -15,6 +16,7 @@ const why: Record<Ineligible, string> = {
   duplicate: "같은 번호 받음",
   group: "다른 그룹",
   status: "미승인",
+  industry: "다른 업종",
 };
 
 function WaitingCard({ lead }: { lead: Lead }) {
@@ -32,6 +34,7 @@ function WaitingCard({ lead }: { lead: Lead }) {
             <span className="text-[15px] font-bold">{lead.name}</span>
             <span className="tabular text-sm text-sub">{lead.phone}</span>
             <Badge tone="orange">{lead.waitReason}</Badge>
+            {lead.industry && <Badge tone="blue">{lead.industry}</Badge>}
           </div>
           <p className="mt-1 text-[13px] text-sub">{carLine(lead)} · {[lead.pageName, lead.site].filter(Boolean).join(" · ")}{lead.term ? ` · ${lead.term}` : ""}</p>
         </div>
@@ -42,7 +45,7 @@ function WaitingCard({ lead }: { lead: Lead }) {
         <div className="flex gap-2">
           <Select value={advId} onChange={(e) => { setAdvId(e.target.value); setError(null); }}>
             <option value="">광고주 선택</option>
-            {approved.map((a) => {
+            {approved.filter((a) => laneOf(a.industry) === laneOf(lead.industry)).map((a) => {
               const w = checkAdvertiser(state, a, { ...lead, groupId: undefined }, now);
               return (
                 <option key={a.id} value={a.id}>
@@ -90,7 +93,7 @@ export default function WaitingPage() {
     <div>
       <PageHeader title="관리자 대기" desc="그날 한도를 넘었거나 받을 광고주가 없어 미배정된 DB입니다" />
       <div className="mb-4">
-        <Notice>관리자 승인 배정은 하루 한도와 수신 OFF를 넘겨서 줄 수 있습니다. 예치금이 부족하거나 같은 번호를 이미 받은 광고주에게는 배정되지 않습니다.</Notice>
+        <Notice>관리자 승인 배정은 하루 한도와 수신 OFF를 넘겨서 줄 수 있습니다. 업종이 다르거나, 예치금이 부족하거나, 같은 번호를 이미 받은 광고주에게는 배정되지 않습니다.</Notice>
       </div>
       {waiting.length === 0 ? (
         <Card><Empty title="대기 중인 DB가 없습니다" /></Card>

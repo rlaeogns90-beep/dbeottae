@@ -11,7 +11,7 @@ import { LiveFeed } from "@/components/live-feed";
 import { LiveStats } from "@/components/live-stats";
 import { Logo, Notice } from "@/components/ui";
 import { useStore } from "@/lib/store";
-import { faqs } from "@/lib/content";
+import { faqs, industryOptions } from "@/lib/content";
 import type { Session } from "@/lib/types";
 
 const home: Record<Session["role"], string> = { advertiser: "/app", partner: "/partner", admin: "/admin" };
@@ -34,7 +34,7 @@ const proofs = [
 
 const compare: [string, string, string][] = [
   ["받는 사람", "여러 업체에 동시 판매", "한 명에게만 단독"],
-  ["가격", "상담해야 알려줌", "건당 40,000원 공개 (VAT 별도)"],
+  ["가격", "상담해야 알려줌", "업종별 건당 가격 공개 (VAT 별도)"],
   ["구매 단위", "수십 건 패키지 선결제", "1건씩 예치금에서 차감"],
   ["수신 조절", "정해진 물량을 그대로 받음", "원할 때 직접 수신 ON/OFF"],
   ["전달", "모아서 일괄 전달", "10초 안에 1:1 카카오 알림톡"],
@@ -48,13 +48,18 @@ const steps: [string, string][] = [
   ["10초 만에 알림톡 도착", "이름, 연락처, 차종이 카카오 알림톡으로 바로 옵니다. 사이트 DB 관리에서도 실시간으로 확인할 수 있습니다."],
 ];
 
-const industries: { name: string; desc: string; icon: React.ElementType; live?: boolean }[] = [
-  { name: "신차 장기렌트", desc: "신차 장기렌트·리스 견적 상담 DB", icon: CarFront, live: true },
-  { name: "중고차 수출/매입", desc: "중고차 수출·매입 상담 DB", icon: Ship },
-  { name: "중고차 리스", desc: "중고차 리스·할부 상담 DB", icon: Car },
-  { name: "오토바이 매매", desc: "이륜차 구매·판매 상담 DB", icon: Bike },
-  { name: "보험", desc: "자동차·생활 보험 상담 DB", icon: Umbrella },
-];
+const look: Record<string, { desc: string; icon: React.ElementType }> = {
+  "신차 장기렌트": { desc: "신차 장기렌트·리스 견적 상담 DB", icon: CarFront },
+  "중고차 수출/매입": { desc: "중고차 수출·매입 상담 DB", icon: Ship },
+  "중고차 리스": { desc: "중고차 리스·할부 상담 DB", icon: Car },
+  "오토바이 매매": { desc: "이륜차 구매·판매 상담 DB", icon: Bike },
+  보험: { desc: "자동차·생활 보험 상담 DB", icon: Umbrella },
+};
+// 업종 이름·진행 여부·가격은 content.ts의 industryOptions 하나에서 가져온다 (열린 업종이 앞에 오게).
+const industries = [...industryOptions]
+  .sort((a, b) => Number(!!b.live) - Number(!!a.live))
+  .map((o) => ({ name: o.name, live: o.live, price: o.price, ...(look[o.name] ?? { desc: `${o.name} 상담 DB`, icon: Car }) }));
+const liveCount = industries.filter((it) => it.live).length;
 
 
 function PhoneMock() {
@@ -292,11 +297,11 @@ export function MainPage() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="flex flex-col gap-3">
               <h2 className="text-[26px] leading-tight font-extrabold tracking-[-0.02em] sm:text-4xl">DB 구매 가능한 업종</h2>
-              <p className="text-base text-sub sm:text-[17px]">신차 장기렌트부터 시작해, 같은 방식으로 업종을 계속 늘려가고 있습니다.</p>
+              <p className="text-base text-sub sm:text-[17px]">신차 장기렌트와 오토바이 매매를 시작으로, 같은 방식으로 업종을 계속 늘려가고 있습니다.</p>
             </div>
             <div className="flex items-center gap-4 text-sm font-semibold">
-              <span className="flex items-center gap-1.5 text-ok"><span className="h-2 w-2 rounded-full bg-ok" />진행 중 1</span>
-              <span className="flex items-center gap-1.5 text-[#6b7684]"><span className="h-2 w-2 rounded-full bg-[#c4cad0]" />준비 중 {industries.length - 1}</span>
+              <span className="flex items-center gap-1.5 text-ok"><span className="h-2 w-2 rounded-full bg-ok" />진행 중 {liveCount}</span>
+              <span className="flex items-center gap-1.5 text-[#6b7684]"><span className="h-2 w-2 rounded-full bg-[#c4cad0]" />준비 중 {industries.length - liveCount}</span>
             </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
@@ -320,7 +325,7 @@ export function MainPage() {
                     <span className="text-sm text-sub">{it.desc}</span>
                   </div>
                   <div className="mt-auto flex items-center justify-between gap-3 border-t border-[#dbe5fb] pt-4">
-                    <span className="tabular text-sm font-bold text-brand-dark">건당 40,000원 <span className="font-medium text-sub">VAT 별도</span></span>
+                    <span className="tabular text-sm font-bold text-brand-dark">건당 {it.price?.toLocaleString()}원 <span className="font-medium text-sub">VAT 별도</span></span>
                     <Link href="/signup" className="-my-2.5 py-2.5 text-sm font-bold text-brand hover:text-brand-dark">지금 받기 →</Link>
                   </div>
                 </div>

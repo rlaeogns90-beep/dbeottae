@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ReceiptCheck } from "@/components/receipt";
 import { useAdvertiser } from "@/components/shells";
 import { Badge, Button, Card, CardHeader, cx, Empty, Field, Input, Notice, PageHeader } from "@/components/ui";
-import { balanceOf } from "@/lib/engine";
+import { balanceOf, minChargeOf, priceOf } from "@/lib/engine";
 import { dateTime, won } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import type { WalletType } from "@/lib/types";
@@ -14,7 +14,8 @@ const typeLabel: Record<WalletType, string> = { charge: "충전", debit: "차감
 export default function WalletPage() {
   const adv = useAdvertiser()!;
   const { state, requestDeposit } = useStore();
-  const { minCharge, price } = state.settings;
+  const price = priceOf(state, adv.industry);
+  const minCharge = minChargeOf(state, adv.industry);
   const presets = [minCharge, minCharge * 2, minCharge * 3];
   const [amount, setAmount] = useState(minCharge);
   const [depositor, setDepositor] = useState(adv.name);

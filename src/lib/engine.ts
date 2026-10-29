@@ -1,8 +1,20 @@
 // DB 배정 규칙. 기획서 "DB 자동 배정 엔진" 섹션을 그대로 옮긴 순수 함수들이라
 // 나중에 서버로 옮겨도 같은 코드를 쓸 수 있다.
+import { DEFAULT_INDUSTRY, industryOptions, laneOf } from "./content";
 import type { Advertiser, Assignment, Lead, State, WalletTx } from "./types";
 
 export const uid = (p: string) => `${p}_${Math.random().toString(36).slice(2, 9)}`;
+
+/** 업종별 건당 차감 금액 (VAT 포함). 신차 장기렌트는 설정의 단가를 그대로 쓴다. */
+export const priceOf = (s: State, industry?: string) => {
+  const lane = laneOf(industry);
+  const supply = industryOptions.find((o) => o.name === lane)?.price;
+  return lane === DEFAULT_INDUSTRY || !supply ? s.settings.price : Math.round(supply * 1.1);
+};
+
+/** 업종별 최소 충전 금액: 신차 장기렌트는 설정값, 나머지는 10건분 */
+export const minChargeOf = (s: State, industry?: string) =>
+  laneOf(industry) === DEFAULT_INDUSTRY ? s.settings.minCharge : priceOf(s, industry) * 10;
 
 export const balanceOf = (s: State, advertiserId: string) =>
   s.wallet.filter((t) => t.advertiserId === advertiserId).reduce((sum, t) => sum + t.amount, 0);
@@ -34,13 +46,14 @@ export const groupOf = (s: State, advertiserId: string) => s.groups.find((g) => 
 /** 그룹 번호: 1번부터 */
 export const groupNo = (s: State, groupId: string) => s.groups.findIndex((g) => g.id === groupId) + 1;
 
-export type Ineligible = "off" | "balance" | "limit" | "duplicate" | "group" | "status";
+export type Ineligible = "off" | "balance" | "limit" | "duplicate" | "group" | "status" | "industry";
 
 export function checkAdvertiser(s: State, adv: Advertiser, lead: Lead, now: Date): Ineligible | null {
   if (adv.status !== "approved") return "status";
+  if (laneOf(adv.industry) !== laneOf(lead.industry)) return "industry";
   if (lead.groupId && groupOf(s, adv.id)?.id !== lead.groupId) return "group";
   if (!adv.receiving) return "off";
-  if (balanceOf(s, adv.id) < s.settings.price) return "balance";
+  if (balanceOf(s, adv.id) < priceOf(s, lead.industry)) return "balance";
   if (hasReceivedPhone(s, adv.id, lead.phone)) return "duplicate";
   if (todayCount(s, adv.id, now) >= s.settings.dailyLimit) return "limit";
   return null;
@@ -56,13 +69,15 @@ export function assign(
 ): State {
   const at = now.toISOString();
   const lead = s.leads.find((l) => l.id === leadId)!;
+  const adv = s.advertisers.find((a) => a.id === advertiserId);
+  const price = priceOf(s, lead.industry);
   const assignment: Assignment = {
     id: uid("as"),
     leadId,
     advertiserId,
     assignedAt: at,
     method,
-    amount: s.settings.price,
+    amount: price,
     consult: "대기",
     memo: "",
   };
@@ -70,7 +85,7 @@ export function assign(
     id: uid("tx"),
     advertiserId,
     type: "debit",
-    amount: -s.settings.price,
+    amount: -price,
     at,
     note: `DB 배정 · ${lead.name}${lead.car ? ` ${lead.car}` : ""}`,
   };
@@ -81,7 +96,8 @@ export function assign(
     leads: s.leads.map((l) => (l.id === leadId ? { ...l, status: "assigned", waitReason: undefined } : l)),
     advertisers: s.advertisers.map((a) => (a.id === advertiserId ? { ...a, lastAssignedAt: at } : a)),
   };
-  if (balanceOf(next, advertiserId) < s.settings.price) {
+  // 잔액이 다음 1건(광고주 업종 단가)보다 적으면 수신을 자동으로 끈다.
+  if (balanceOf(next, advertiserId) < priceOf(s, adv?.industry)) {
     next = {
       ...next,
       advertisers: next.advertisers.map((a) =>

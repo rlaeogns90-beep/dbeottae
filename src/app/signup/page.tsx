@@ -106,7 +106,7 @@ export default function SignupPage() {
                   )}
                 >
                   <p className={cx("text-sm font-semibold", f.industry === o.name ? "text-brand" : "text-ink")}>{o.name}</p>
-                  <p className="text-xs text-mute">{o.live ? "지금 받을 수 있음" : "오픈 예정"}</p>
+                  <p className="text-xs text-mute">{o.live ? `건당 ${o.price?.toLocaleString()}원 · VAT 별도` : "오픈 예정"}</p>
                 </button>
               ))}
             </div>

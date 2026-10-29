@@ -7,7 +7,7 @@ import { useState } from "react";
 import { carLine, CONSULTS, consultTone, useDefectState } from "@/components/lead-parts";
 import { useAdvertiser } from "@/components/shells";
 import { Badge, Button, Card, cx, Empty, Field, Modal, Notice, Textarea } from "@/components/ui";
-import { dateTime } from "@/lib/format";
+import { dateTime, won } from "@/lib/format";
 import { useStore } from "@/lib/store";
 
 export default function LeadDetail() {
@@ -110,8 +110,8 @@ export default function LeadDetail() {
           ) : null}
         </div>
         <div className="mt-3">
-          {report?.status === "pending" && <Notice tone="orange">지원팀이 결번인지 확인하고 있습니다. 확인되면 44,000원 전액이 예치금으로 환급됩니다.</Notice>}
-          {report?.status === "approved" && <Notice tone="blue">결번이 확인되어 44,000원 전액(100%)이 예치금으로 환급됐습니다.</Notice>}
+          {report?.status === "pending" && <Notice tone="orange">지원팀이 결번인지 확인하고 있습니다. 확인되면 {won(a.amount)} 전액이 예치금으로 환급됩니다.</Notice>}
+          {report?.status === "approved" && <Notice tone="blue">결번이 확인되어 {won(a.amount)} 전액(100%)이 예치금으로 환급됐습니다.</Notice>}
           {report?.status === "rejected" && <Notice>반려됨: {report.rejectReason ?? "사유 없음"}</Notice>}
           {!report && <p className="text-[13px] text-mute">결번이 확인되면 DB 금액 100%를 예치금으로 돌려드립니다.</p>}
         </div>
@@ -150,7 +150,7 @@ export default function LeadDetail() {
               className="block w-full text-sm text-sub file:mr-3 file:h-10 file:rounded-lg file:border file:border-line file:bg-white file:px-4 file:text-sm file:font-semibold file:text-ink"
             />
           </Field>
-          <Notice>불량은 결번만 인정되며 신청 기한은 없습니다. 지원팀이 번호를 확인하면 44,000원 전액이 예치금으로 환급됩니다.</Notice>
+          <Notice>불량은 결번만 인정되며 신청 기한은 없습니다. 지원팀이 번호를 확인하면 {won(a.amount)} 전액이 예치금으로 환급됩니다.</Notice>
           {error && <p className="text-[13px] text-bad">{error}</p>}
         </div>
       </Modal>

@@ -11,6 +11,8 @@ export interface IndustrySlide {
   desc: string;
   icon: React.ElementType;
   live?: boolean;
+  /** 건당 공급가 (VAT 별도) */
+  price?: number;
 }
 
 const INTERVAL = 3500;
@@ -65,7 +67,7 @@ export function IndustryRoller({ items }: { items: IndustrySlide[] }) {
             </div>
             <div className="mt-3 flex flex-wrap items-end gap-x-5 gap-y-1.5">
               {it.live ? (
-                <span className="tabular text-[38px] leading-none font-extrabold tracking-[-0.03em] sm:text-[44px]">40,000원</span>
+                <span className="tabular text-[38px] leading-none font-extrabold tracking-[-0.03em] sm:text-[44px]">{it.price?.toLocaleString()}원</span>
               ) : (
                 <span className="text-[30px] leading-none font-extrabold tracking-[-0.03em] sm:text-[36px]">오픈 준비 중</span>
               )}

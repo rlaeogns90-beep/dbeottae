@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useAdvertiser } from "@/components/shells";
 import { Badge, Card, Empty, Notice, PageHeader } from "@/components/ui";
-import { dateTime } from "@/lib/format";
+import { dateTime, won } from "@/lib/format";
 import { useStore } from "@/lib/store";
 
 export default function DefectsPage() {
@@ -16,7 +16,7 @@ export default function DefectsPage() {
       <PageHeader title="불량 처리 내역" />
       <div className="mb-4">
         <Notice>
-          불량은 <b>결번만</b> 인정됩니다. 결번인 DB는 <b>받은 시점과 상관없이</b> DB 상세 화면에서 신청하세요. 통화 녹음은 없어도 됩니다. 결번이 확인되면 44,000원 <b>전액(100%)</b>을 예치금으로 돌려드립니다.
+          불량은 <b>결번만</b> 인정됩니다. 결번인 DB는 <b>받은 시점과 상관없이</b> DB 상세 화면에서 신청하세요. 통화 녹음은 없어도 됩니다. 결번이 확인되면 차감된 DB 금액 <b>전액(100%)</b>을 예치금으로 돌려드립니다.
         </Notice>
       </div>
       <Card>
@@ -36,7 +36,7 @@ export default function DefectsPage() {
                       {d.status === "rejected" && <p className="mt-1 text-[13px] text-bad">반려 사유: {d.rejectReason}</p>}
                     </div>
                     {d.status === "pending" && <Badge tone="orange">검토 중</Badge>}
-                    {d.status === "approved" && <Badge tone="blue">승인 · 44,000원 환급</Badge>}
+                    {d.status === "approved" && <Badge tone="blue">승인 · {won(a.amount)} 환급</Badge>}
                     {d.status === "rejected" && <Badge tone="red">반려</Badge>}
                   </Link>
                 </li>

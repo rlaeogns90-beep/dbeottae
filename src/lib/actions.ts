@@ -1,7 +1,7 @@
 // 화면에서 하는 모든 변경 작업. 브라우저(미리 반영)와 서버(실제 저장)가 같은 함수를 쓰고,
 // 서버에서는 이 함수가 권한까지 확인한 결과만 저장한다.
 import { isIndustry } from "./content";
-import { assign, checkAdvertiser, reopenAt, routeLead, uid } from "./engine";
+import { assign, checkAdvertiser, minChargeOf, priceOf, reopenAt, routeLead, uid } from "./engine";
 import type { Advertiser, Assignment, DefectReason, Lead, MemberStatus, Session, Settings, State } from "./types";
 
 export type Action =
@@ -113,7 +113,7 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
         const until = reopenAt(s, adv);
         if (until && until > now) return { error: "OFF 후 24시간이 지나야 다시 켤 수 있습니다." };
         const bal = s.wallet.filter((t) => t.advertiserId === adv.id).reduce((n, t) => n + t.amount, 0);
-        if (bal < s.settings.price) return { error: "예치금이 부족합니다. 충전 후 다시 켜 주세요." };
+        if (bal < priceOf(s, adv.industry)) return { error: "예치금이 부족합니다. 충전 후 다시 켜 주세요." };
       }
       return ok({
         ...s,
@@ -127,7 +127,8 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
       });
     }
     case "requestDeposit": {
-      if (!(a.amount >= s.settings.minCharge)) return { error: `최소 충전 금액은 ${s.settings.minCharge.toLocaleString()}원입니다.` };
+      const min = minChargeOf(s, s.advertisers.find((x) => x.id === a.advertiserId)?.industry);
+      if (!(a.amount >= min)) return { error: `최소 충전 금액은 ${min.toLocaleString()}원입니다.` };
       return ok({ ...s, deposits: [{ id: uid("dp"), advertiserId: a.advertiserId, amount: a.amount, depositor: a.depositor, at, status: "pending" }, ...s.deposits] });
     }
     case "updateAssignment": {
@@ -198,8 +199,9 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
       const adv = s.advertisers.find((x) => x.id === advertiserId);
       if (!lead || !adv) return { error: "DB 또는 광고주를 찾을 수 없습니다." };
       if (lead.status !== "waiting") return { error: "이미 배정된 DB입니다." };
-      // 관리자 배정은 하루 한도와 수신 OFF는 넘길 수 있지만, 잔액과 같은 번호 규칙은 지킨다.
+      // 관리자 배정은 하루 한도와 수신 OFF는 넘길 수 있지만, 업종·잔액·같은 번호 규칙은 지킨다.
       const why = checkAdvertiser(s, adv, { ...lead, groupId: undefined }, now);
+      if (why === "industry") return { error: "업종이 다른 광고주에게는 배정할 수 없습니다." };
       if (why === "balance") return { error: "이 광고주는 예치금이 부족합니다." };
       if (why === "duplicate") return { error: "이 광고주는 같은 번호를 이미 받았습니다." };
       if (why === "status") return { error: "승인된 광고주가 아닙니다." };
@@ -250,6 +252,9 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
           enabled: typeof p.enabled === "boolean" ? p.enabled : cur.enabled, statsEnabled: typeof p.statsEnabled === "boolean" ? p.statsEnabled : cur.statsEnabled,
         };
       }
+      // 연결의 업종은 정해진 업종 이름만 받는다 (그 밖의 값은 비워서 신차 장기렌트로 본다).
+      if (Array.isArray(patch.connections))
+        patch.connections = patch.connections.map((c) => ({ ...c, industry: isIndustry(c.industry) ? c.industry : undefined }));
       return ok({ ...s, settings: { ...s.settings, ...patch } });
     }
     case "addGroup":

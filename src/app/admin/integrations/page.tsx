@@ -4,6 +4,7 @@ import { Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge, Button, Card, CardHeader, Input, Notice, PageHeader, Select, Toggle } from "@/components/ui";
 import { SolapiCard } from "@/components/solapi-card";
+import { DEFAULT_INDUSTRY, industryOptions } from "@/lib/content";
 import { uid } from "@/lib/engine";
 import { useStore } from "@/lib/store";
 import type { Connection } from "@/lib/types";
@@ -18,6 +19,8 @@ const webhookFields: [string, string][] = [
   ["term", "광고소재명"],
 ];
 
+const liveIndustries = industryOptions.filter((o) => o.live);
+
 const adminSample = `POST /api/v1/assign
 X-Connection-Key: ak_xxxxxxxx
 
@@ -29,7 +32,7 @@ X-Connection-Key: ak_xxxxxxxx
 export default function IntegrationsPage() {
   const { state, updateSettings } = useStore();
   const { connections } = state.settings;
-  const [newConn, setNewConn] = useState({ name: "", type: "landing" as Connection["type"] });
+  const [newConn, setNewConn] = useState({ name: "", type: "landing" as Connection["type"], industry: DEFAULT_INDUSTRY });
 
   const setConnections = (next: Connection[]) => updateSettings({ connections: next });
   const [origin, setOrigin] = useState("");
@@ -47,13 +50,24 @@ export default function IntegrationsPage() {
       <PageHeader title="외부 연동 · 알림톡" desc="웹훅(제피어 등)과 외부 관리자 어드민, 솔라피 알림톡을 연결합니다" />
 
       <Card>
-        <CardHeader title="연결 목록" desc="연결마다 웹훅 URL(키 포함)을 발급합니다. 키가 틀리거나 중지된 연결의 요청은 거절합니다." />
+        <CardHeader title="연결 목록" desc="연결마다 웹훅 URL(키 포함)을 발급합니다. 들어온 DB는 연결에 정한 업종의 광고주에게만 배정됩니다. 키가 틀리거나 중지된 연결의 요청은 거절합니다." />
         <ul className="divide-y divide-line">
           {connections.map((c) => (
             <li key={c.id} className="px-5 py-3.5">
               <div className="flex flex-wrap items-center gap-3">
                 <Badge tone={c.type === "landing" ? "blue" : "orange"}>{c.type === "landing" ? "웹훅 접수" : "외부 어드민"}</Badge>
                 <span className="flex-1 text-sm font-semibold">{c.name}</span>
+                {c.type === "landing" && (
+                  <div className="w-40 shrink-0">
+                    <Select
+                      aria-label={`${c.name} 업종`}
+                      value={c.industry ?? DEFAULT_INDUSTRY}
+                      onChange={(e) => setConnections(connections.map((x) => (x.id === c.id ? { ...x, industry: e.target.value } : x)))}
+                    >
+                      {liveIndustries.map((o) => <option key={o.name} value={o.name}>{o.name}</option>)}
+                    </Select>
+                  </div>
+                )}
                 <Toggle on={c.active} onChange={(v) => setConnections(connections.map((x) => (x.id === c.id ? { ...x, active: v } : x)))} />
               </div>
               {c.type === "landing" ? (
@@ -75,7 +89,7 @@ export default function IntegrationsPage() {
             e.preventDefault();
             if (!newConn.name.trim()) return;
             const key = `${newConn.type === "landing" ? "lk" : "ak"}_${Math.random().toString(16).slice(2, 10)}`;
-            setConnections([...connections, { id: uid("cn"), name: newConn.name.trim(), type: newConn.type, key, active: true }]);
+            setConnections([...connections, { id: uid("cn"), name: newConn.name.trim(), type: newConn.type, key, active: true, industry: newConn.type === "landing" ? newConn.industry : undefined }]);
             setNewConn({ ...newConn, name: "" });
           }}
         >
@@ -83,6 +97,13 @@ export default function IntegrationsPage() {
             <option value="landing">웹훅 접수</option>
             <option value="admin">외부 어드민</option>
           </Select>
+          {newConn.type === "landing" && (
+            <div className="w-40 shrink-0">
+              <Select aria-label="업종" value={newConn.industry} onChange={(e) => setNewConn({ ...newConn, industry: e.target.value })}>
+                {liveIndustries.map((o) => <option key={o.name} value={o.name}>{o.name}</option>)}
+              </Select>
+            </div>
+          )}
           <Input className="min-w-48 flex-1" placeholder="매체 사이트명 (예: 전기차 견적 사이트)" value={newConn.name} onChange={(e) => setNewConn({ ...newConn, name: e.target.value })} />
           <Button type="submit" disabled={!newConn.name.trim()}>키 발급</Button>
         </form>
