@@ -6,6 +6,7 @@ import { routeLead, uid } from "@/lib/engine";
 import { mutate } from "@/lib/server/db";
 import { alert, clientIp, guarded, overLimit } from "@/lib/server/ops";
 import { loadState } from "@/lib/server/db";
+import { pushToSheet, sheetRow } from "@/lib/server/sheet";
 import { notifyAssigned, notifyStats } from "@/lib/server/solapi";
 import type { Lead } from "@/lib/types";
 
@@ -85,6 +86,8 @@ export const POST = guarded("웹훅", async (req) => {
     const { data } = await loadState();
     await notifyAssigned(data, result.leadId).catch(() => {});
     await notifyStats(data, result.leadId).catch(() => {});
+    const row = sheetRow(data, result.leadId);
+    if (row) await pushToSheet([row]);
   }
   return Response.json({ ok: true, leadId: result.leadId, assigned: result.assigned, duplicate: result.duplicate ?? false, waitReason: result.waitReason ?? null });
 });
