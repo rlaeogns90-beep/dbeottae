@@ -156,6 +156,9 @@ export interface Connection {
   industry?: string;
 }
 
+/** 관리자 '처리' 탭의 알림 종류 */
+export type TaskKind = "member" | "deposit" | "defect" | "support";
+
 export interface Settings {
   price: number;
   minCharge: number;
@@ -188,6 +191,12 @@ export interface Settings {
     enabled: boolean;
     /** 통계 알림만 따로 켜기·끄기 */
     statsEnabled: boolean;
+    /** 처리 알림 템플릿(관리자용): 가입·입금·불량·문의가 새로 들어오면 */
+    templateTask?: string;
+    /** 충전 완료 템플릿(광고주용): 관리자가 입금을 확인하면 */
+    templateCharged?: string;
+    /** 처리 알림을 받을 관리자 번호 (종류마다 최대 3개) */
+    taskPhones?: Partial<Record<TaskKind, string[]>>;
     apiKey?: string;
     keyReady?: boolean;
   };

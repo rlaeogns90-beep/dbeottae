@@ -3,7 +3,7 @@ import { runAction, type Action } from "@/lib/actions";
 import { crossSite, findUser, readToken, stillValid } from "@/lib/server/auth";
 import { loadState, mutate } from "@/lib/server/db";
 import { audit, clientIp, guarded, overLimit, tooMany } from "@/lib/server/ops";
-import { notifyAssigned } from "@/lib/server/solapi";
+import { notifyAssigned, notifyCharged, notifyTask } from "@/lib/server/solapi";
 
 const LABEL: Record<Action["type"], string> = {
   setReceiving: "수신 ON/OFF", requestDeposit: "충전 요청", updateAssignment: "상담 상태·메모", reportDefect: "불량 신청",
@@ -40,6 +40,15 @@ export const POST = guarded("작업 저장", async (req) => {
   if ((action.type === "assignWaiting" || action.type === "assignWaitingToGroup") && who.role === "admin") {
     const { data: fresh } = await loadState();
     await notifyAssigned(fresh, action.leadId).catch(() => {});
+  }
+  // 광고주의 충전 신청·불량 신청은 처리 알림톡으로 관리자에게, 관리자의 입금 확인은 충전 완료 알림톡으로 광고주에게 보낸다.
+  if (action.type === "requestDeposit" || action.type === "reportDefect" || (action.type === "handleDeposit" && action.ok)) {
+    const { data: fresh } = await loadState();
+    const name = (findUser(fresh, who) as { name: string } | undefined)?.name ?? "";
+    if (action.type === "requestDeposit")
+      await notifyTask(fresh, "deposit", `${name} 광고주 충전 신청 ${action.amount.toLocaleString()}원 (입금자 ${action.depositor})`).catch(() => {});
+    else if (action.type === "reportDefect") await notifyTask(fresh, "defect", `${name} 광고주 결번 불량 신청`).catch(() => {});
+    else await notifyCharged(fresh, action.id).catch(() => {});
   }
   if (who.role === "admin") {
     const { type, detail } = describe(action);

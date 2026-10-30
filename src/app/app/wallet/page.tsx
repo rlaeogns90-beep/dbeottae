@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ReceiptCheck } from "@/components/receipt";
 import { useAdvertiser } from "@/components/shells";
-import { Badge, Button, Card, CardHeader, cx, Empty, Field, Input, Notice, PageHeader } from "@/components/ui";
+import { Badge, Button, Card, CardHeader, cx, Empty, Field, Input, Modal, Notice, PageHeader } from "@/components/ui";
 import { balanceOf, minChargeOf, priceOf } from "@/lib/engine";
 import { dateTime, won } from "@/lib/format";
 import { useStore } from "@/lib/store";
@@ -21,13 +21,22 @@ export default function WalletPage() {
   const [depositor, setDepositor] = useState(adv.name);
   const [agree, setAgree] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
   const balance = balanceOf(state, adv.id);
   const txs = state.wallet.filter((t) => t.advertiserId === adv.id);
   const requests = state.deposits.filter((d) => d.advertiserId === adv.id);
 
-  const submit = () => {
+  // 신청 버튼을 누르면 입금을 마쳤는지 한 번 더 묻고, '입금했어요'를 눌러야 접수한다.
+  const ask = () => {
     if (!agree) return setMsg({ ok: false, text: "환불 불가 안내에 동의해 주세요." });
+    if (amount < minCharge) return setMsg({ ok: false, text: `최소 충전 금액은 ${won(minCharge)}입니다.` });
+    if (!depositor.trim()) return setMsg({ ok: false, text: "입금자명을 입력해 주세요." });
+    setMsg(null);
+    setConfirming(true);
+  };
+  const submit = () => {
+    setConfirming(false);
     const err = requestDeposit(adv.id, amount, depositor);
     if (err) return setMsg({ ok: false, text: err });
     setMsg({ ok: true, text: "충전 신청이 접수됐습니다. 입금이 확인되면 예치금에 반영됩니다." });
@@ -80,7 +89,7 @@ export default function WalletPage() {
                 충전한 예치금은 환불되지 않으며, 결번으로 확인된 DB만 예치금으로 100% 환급되는 것에 동의합니다.
               </label>
               {msg && <p className={cx("text-[13px]", msg.ok ? "text-brand" : "text-bad")}>{msg.text}</p>}
-              <Button size="lg" className="w-full" onClick={submit}>{won(amount)} 충전 신청</Button>
+              <Button size="lg" className="w-full" onClick={ask}>{won(amount)} 충전 신청</Button>
             </div>
           </Card>
         </div>
@@ -127,6 +136,25 @@ export default function WalletPage() {
           </Card>
         </div>
       </div>
+
+      <Modal
+        open={confirming}
+        title="입금하셨나요?"
+        onClose={() => setConfirming(false)}
+        footer={
+          <>
+            <Button variant="secondary" className="flex-1" onClick={() => setConfirming(false)}>아직 안 했어요</Button>
+            <Button className="flex-1" onClick={submit}>입금했어요</Button>
+          </>
+        }
+      >
+        <p className="text-sm leading-relaxed text-sub">아래 계좌로 입금을 마친 뒤에 신청해 주세요. 입금이 확인되지 않으면 예치금에 반영되지 않습니다.</p>
+        <dl className="mt-4 space-y-2 rounded-lg bg-page px-4 py-3 text-sm">
+          <div className="flex justify-between gap-3"><dt className="text-sub">입금 금액</dt><dd className="tabular font-bold">{won(amount)}</dd></div>
+          <div className="flex justify-between gap-3"><dt className="text-sub">입금자명</dt><dd className="font-semibold">{depositor}</dd></div>
+          <div className="flex justify-between gap-3"><dt className="text-sub">입금 계좌</dt><dd className="tabular text-right font-semibold">{state.settings.bankAccount.bank} {state.settings.bankAccount.number}<br />{state.settings.bankAccount.holder}</dd></div>
+        </dl>
+      </Modal>
     </div>
   );
 }

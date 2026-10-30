@@ -3,6 +3,7 @@
 import { crossSite, findUser, readToken, stillValid } from "@/lib/server/auth";
 import { ensureTable, loadState, sql } from "@/lib/server/db";
 import { alert, audit, clientIp, guarded, overLimit, tooMany } from "@/lib/server/ops";
+import { notifyTask } from "@/lib/server/solapi";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +63,7 @@ export const POST = guarded("고객센터", async (req) => {
       await sql`insert into support_posts (kind, advertiser_id, title, body) values ('inquiry', ${me.who.id}, ${title}, ${body})`;
       const name = (findUser(me.data, me.who) as { name: string }).name;
       await alert("info", "고객센터", `${name} 광고주의 새 문의가 등록됐습니다: ${title.slice(0, 40)}`);
+      await notifyTask(me.data, "support", `${name} 광고주 문의: ${title}`).catch(() => {});
     } else return Response.json({ error: "잘못된 요청입니다." }, { status: 400 });
     return Response.json({ ok: true });
   }

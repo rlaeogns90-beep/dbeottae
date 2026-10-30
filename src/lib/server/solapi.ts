@@ -5,7 +5,7 @@
 import "server-only";
 import { createHmac, randomBytes } from "node:crypto";
 import { SITE_URL } from "../site";
-import type { Assignment, Lead, Settings, State } from "../types";
+import type { Assignment, Lead, Settings, State, TaskKind } from "../types";
 import { alert } from "./ops";
 
 type Solapi = Settings["solapi"];
@@ -102,6 +102,49 @@ export async function notifyAssigned(s: State, leadId: string) {
   const adv = asg && s.advertisers.find((a) => a.id === asg.advertiserId);
   if (!asg || !lead || !adv) return;
   await report(`${adv.name} 광고주에게 문의 접수 알림톡`, await sendKakao(cfg, adv.phone, cfg.templateInquiry, inquiryVars(lead, asg)));
+}
+
+export const TASK_LABEL: Record<TaskKind, { name: string; path: string }> = {
+  member: { name: "가입 승인", path: "/admin/members" },
+  deposit: { name: "입금 확인", path: "/admin/deposits" },
+  defect: { name: "불량 처리", path: "/admin/defects" },
+  support: { name: "고객센터 문의", path: "/admin/support" },
+};
+
+const kstTime = (d = new Date()) => new Date(d.getTime() + 9 * 3600_000).toISOString().slice(5, 16).replace("-", "/").replace("T", " ");
+
+export const taskVars = (kind: TaskKind, detail: string): Record<string, string> => ({
+  구분: TASK_LABEL[kind].name,
+  내용: clip(detail, 100),
+  시각: kstTime(),
+  url: `${host}${TASK_LABEL[kind].path}`,
+});
+
+/** 처리할 일이 새로 생겼을 때: 처리 알림톡(그 종류에 등록한 관리자 번호들) */
+export async function notifyTask(s: State, kind: TaskKind, detail: string) {
+  const cfg = s.settings.solapi;
+  const phones = cfg.taskPhones?.[kind] ?? [];
+  if (!cfg.enabled || !cfg.templateTask || !phones.length) return;
+  const vars = taskVars(kind, detail);
+  for (const to of phones) await report(`관리자 ${TASK_LABEL[kind].name} 알림톡`, await sendKakao(cfg, to, cfg.templateTask, vars));
+}
+
+export const chargedVars = (name: string, amount: number, balance: number): Record<string, string> => ({
+  광고주명: name,
+  충전금액: `${amount.toLocaleString()}원`,
+  잔액: `${balance.toLocaleString()}원`,
+  url: `${host}/app/wallet`,
+});
+
+/** 관리자가 입금을 확인했을 때: 충전 완료 알림톡(광고주) */
+export async function notifyCharged(s: State, depositId: string) {
+  const cfg = s.settings.solapi;
+  if (!cfg.enabled || !cfg.templateCharged) return;
+  const d = s.deposits.find((x) => x.id === depositId);
+  const adv = d && s.advertisers.find((a) => a.id === d.advertiserId);
+  if (!d || d.status !== "approved" || !adv) return;
+  const balance = s.wallet.filter((t) => t.advertiserId === adv.id).reduce((n, t) => n + t.amount, 0);
+  await report(`${adv.name} 광고주에게 충전 완료 알림톡`, await sendKakao(cfg, adv.phone, cfg.templateCharged, chargedVars(adv.name, d.amount, balance)));
 }
 
 /** 새 DB가 접수됐을 때: 통계 알림톡(관리자) */

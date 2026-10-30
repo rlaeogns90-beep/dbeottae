@@ -3,7 +3,8 @@
 // 횟수 제한은 파일이 붙은 신청에만 IP당 1시간 10번으로 둔다 (DB에 파일이 쌓이는 것을 막으려고).
 import { signup, type SignupInput } from "@/lib/accounts";
 import { uid } from "@/lib/engine";
-import { ensureTable, mutate, sql } from "@/lib/server/db";
+import { ensureTable, loadState, mutate, sql } from "@/lib/server/db";
+import { notifyTask } from "@/lib/server/solapi";
 import { clientIp, guarded, overLimit, tooMany } from "@/lib/server/ops";
 import { readUpload } from "@/lib/server/upload";
 
@@ -47,5 +48,8 @@ export const POST = guarded("가입 신청", async (req) => {
   });
   // 가입이 거절되면(아이디 중복 등) 방금 저장한 파일도 지운다.
   if (error && bizFile) await sql`delete from biz_files where advertiser_id = ${id}`;
-  return error ? bad(error) : Response.json({ ok: true });
+  if (error) return bad(error);
+  const { data } = await loadState();
+  await notifyTask(data, "member", `${input.name}${input.company ? `(${input.company})` : ""} 광고주 가입 신청 · ${input.industry}`).catch(() => {});
+  return Response.json({ ok: true });
 });

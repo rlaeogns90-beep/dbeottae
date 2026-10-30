@@ -2,7 +2,7 @@
 // 서버에서는 이 함수가 권한까지 확인한 결과만 저장한다.
 import { isIndustry } from "./content";
 import { assign, checkAdvertiser, minChargeOf, priceOf, reopenAt, routeLead, uid } from "./engine";
-import type { Advertiser, Assignment, DefectReason, Lead, MemberStatus, Session, Settings, State } from "./types";
+import type { Advertiser, Assignment, DefectReason, Lead, MemberStatus, Session, Settings, State, TaskKind } from "./types";
 
 export type Action =
   // 광고주 본인
@@ -78,7 +78,24 @@ function invalid(a: Action): string | null {
   }
 }
 
-const loginIdTaken = (s: State, loginId: string) =>
+export const TASK_KINDS: TaskKind[] = ["member", "deposit", "defect", "support"];
+export const MAX_TASK_PHONES = 3;
+
+/** 처리 알림 번호: 정해진 종류만, 종류마다 숫자 10~11자리 번호 최대 3개 */
+function taskPhonesOf(v: object): Partial<Record<TaskKind, string[]>> {
+  const src = v as Record<string, unknown>;
+  return Object.fromEntries(
+    TASK_KINDS.map((k) => [
+      k,
+      (Array.isArray(src[k]) ? src[k] : [])
+        .filter((p): p is string => typeof p === "string" && /^\d{10,11}$/.test(p.replace(/\D/g, "")))
+        .map((p) => p.trim())
+        .slice(0, MAX_TASK_PHONES),
+    ]),
+  );
+}
+
+const loginIdTaken =(s: State, loginId: string) =>
   [...s.advertisers, ...s.partners, ...s.admins].some((u) => u.loginId === loginId);
 
 /** 누가 어떤 작업을 할 수 있는지 */
@@ -146,11 +163,14 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
     }
     case "approveMember": {
       const status: MemberStatus = a.ok ? "approved" : "rejected";
-      return ok(
-        a.kind === "advertiser"
-          ? { ...s, advertisers: s.advertisers.map((x) => (x.id === a.id ? { ...x, status } : x)) }
-          : { ...s, partners: s.partners.map((x) => (x.id === a.id ? { ...x, status } : x)) },
-      );
+      if (a.kind === "partner") return ok({ ...s, partners: s.partners.map((x) => (x.id === a.id ? { ...x, status } : x)) });
+      // 광고주를 승인하면 그룹 순번에 자동으로 넣는다: 빈 그룹이 있으면 그 자리, 없으면 맨 뒤에 새 그룹.
+      let groups = s.groups;
+      if (a.ok && !groups.some((g) => g.advertiserId === a.id)) {
+        const empty = groups.find((g) => !g.advertiserId);
+        groups = empty ? groups.map((g) => (g.id === empty.id ? { ...g, advertiserId: a.id } : g)) : [...groups, { id: uid("g"), advertiserId: a.id }];
+      }
+      return ok({ ...s, groups, advertisers: s.advertisers.map((x) => (x.id === a.id ? { ...x, status } : x)) });
     }
     case "setMemberStatus":
       return ok(
@@ -250,6 +270,8 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
           channel: t(p.channel, cur.channel, 50), pfId: t(p.pfId, cur.pfId, 60), sender: t(p.sender, cur.sender, 20),
           templateInquiry: t(p.templateInquiry, cur.templateInquiry), templateStats: t(p.templateStats, cur.templateStats), statsPhone: t(p.statsPhone, cur.statsPhone, 20),
           enabled: typeof p.enabled === "boolean" ? p.enabled : cur.enabled, statsEnabled: typeof p.statsEnabled === "boolean" ? p.statsEnabled : cur.statsEnabled,
+          templateTask: t(p.templateTask, cur.templateTask ?? ""), templateCharged: t(p.templateCharged, cur.templateCharged ?? ""),
+          taskPhones: p.taskPhones && typeof p.taskPhones === "object" ? taskPhonesOf(p.taskPhones) : cur.taskPhones,
         };
       }
       // 연결의 업종은 정해진 업종 이름만 받는다 (그 밖의 값은 비워서 신차 장기렌트로 본다).
