@@ -1,4 +1,4 @@
-// 고객센터 게시판. 광고주는 문의를 쓰고 본인 글과 답변만 보며,
+// 챗봇 문의(예전 고객센터 게시판). 광고주는 문의를 쓰고 본인 글과 답변만 보며,
 // 관리자만 모든 글을 보고 답변·삭제한다. 광고주끼리는 서로의 글을 볼 수 없다.
 // 광고주가 답변을 읽으면 seen_at을 남겨 챗봇 빨간 점을 끈다.
 import { crossSite, findUser, readToken, stillValid } from "@/lib/server/auth";
@@ -21,7 +21,7 @@ async function who(req: Request) {
   return stillValid(data, t) ? { who: t, data } : null;
 }
 
-export const GET = guarded("고객센터", async (req) => {
+export const GET = guarded("챗봇 문의", async (req) => {
   const me = await who(req);
   if (!me) return Response.json({ error: "다시 로그인해 주세요." }, { status: 401 });
   await ensureTable();
@@ -46,7 +46,7 @@ type Body =
   | { op: "delete"; id: number }
   | { op: "seen" };
 
-export const POST = guarded("고객센터", async (req) => {
+export const POST = guarded("챗봇 문의", async (req) => {
   if (crossSite(req)) return Response.json({ error: "잘못된 요청입니다." }, { status: 403 });
   const me = await who(req);
   if (!me) return Response.json({ error: "다시 로그인해 주세요." }, { status: 401 });
@@ -64,7 +64,7 @@ export const POST = guarded("고객센터", async (req) => {
       if (await overLimit(`support:${me.who.id}`, 10, 3600)) return tooMany(60);
       await sql`insert into support_posts (kind, advertiser_id, title, body) values ('inquiry', ${me.who.id}, ${title}, ${body})`;
       const name = (findUser(me.data, me.who) as { name: string }).name;
-      await alert("info", "고객센터", `${name} 광고주의 새 문의가 등록됐습니다: ${title.slice(0, 40)}`);
+      await alert("info", "챗봇 문의", `${name} 광고주의 새 챗봇 문의가 등록됐습니다: ${title.slice(0, 40)}`);
       await notifyTask(me.data, "support", `${name} 광고주 문의: ${title}`).catch(() => {});
     } else return Response.json({ error: "잘못된 요청입니다." }, { status: 400 });
     return Response.json({ ok: true });
@@ -84,12 +84,12 @@ export const POST = guarded("고객센터", async (req) => {
     if (!reply || reply.length > 3000) return Response.json({ error: "답변은 1~3,000자로 써 주세요." }, { status: 400 });
     const r = (await sql`update support_posts set reply = ${reply}, reply_at = now(), replied_by = ${admin.name} where id = ${b.id} and kind = 'inquiry' returning id`) as unknown[];
     if (!r.length) return Response.json({ error: "답변할 수 있는 문의가 아닙니다." }, { status: 400 });
-    await audit({ actor: admin.name, role: "admin", action: "고객센터 답변", detail: `문의 #${b.id}`, ip: clientIp(req) });
+    await audit({ actor: admin.name, role: "admin", action: "챗봇 문의 답변", detail: `문의 #${b.id}`, ip: clientIp(req) });
     return Response.json({ ok: true });
   }
   if (b.op === "delete") {
     await sql`delete from support_posts where id = ${b.id}`;
-    await audit({ actor: admin.name, role: "admin", action: "고객센터 글 삭제", detail: `#${b.id}`, ip: clientIp(req) });
+    await audit({ actor: admin.name, role: "admin", action: "챗봇 문의 삭제", detail: `#${b.id}`, ip: clientIp(req) });
     return Response.json({ ok: true });
   }
   return Response.json({ error: "잘못된 요청입니다." }, { status: 400 });
