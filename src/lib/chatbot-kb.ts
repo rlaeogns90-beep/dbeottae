@@ -19,21 +19,23 @@ const faq = (q: string) => {
 const fromFaq = (id: string, q: string, words: string[]): Topic => ({ id, q, a: faq(q), words });
 
 // words는 질문(소문자, 공백 하나로 정리)에 들어 있으면 이 답을 고르는 단어. 긴 단어일수록 점수가 높다.
+// 점수가 같으면 앞의 답을 고른다. 불량은 가격보다 앞: "결번이면 환불돼요?"에 "환불 불가" 가격 답이 나가면 안 된다.
 const common: Topic[] = [
   fromFaq("about", "DB어때는 어떤 플랫폼인가요?", ["플랫폼", "무엇", "어떤 곳", "소개", "디비어때", "db어때", "뭐하는"]),
   fromFaq("source", "DB는 어디에서 수집되나요?", ["수집", "어디서 나", "출처", "진짜", "허위", "조작"]),
+  fromFaq("defect", "어떤 DB가 불량으로 인정되나요?", ["불량", "결번", "환급", "없는 번호", "안 받", "안받"]),
   fromFaq("price", "가격은 얼마인가요?", ["가격", "얼마", "비용", "단가", "금액", "요금", "건당", "최소 충전", "최소충전", "환불"]),
   fromFaq("speed", "DB는 얼마나 빨리 오나요?", ["빨리", "속도", "언제 와", "알림톡", "몇초", "몇 초", "실시간"]),
   fromFaq("onoff", "원할 때만 받을 수 있나요?", ["on", "off", "끄", "켜", "수신", "멈", "중지", "쉬"]),
   fromFaq("daily", "하루에 몇 건까지 받나요?", ["하루", "몇 건", "몇건", "한도", "최대"]),
   fromFaq("exclusive", "다른 사람도 같은 DB를 받나요?", ["중복", "다른 사람", "다른사람", "단독", "공유", "같은 db", "같은"]),
-  fromFaq("defect", "어떤 DB가 불량으로 인정되나요?", ["불량", "결번", "환급", "없는 번호", "안 받", "안받"]),
   { ...fromFaq("signup", "어떻게 시작하나요?", ["시작", "가입", "추천인", "회원", "승인"]), links: [["/signup", "광고주 가입 신청"]] },
   {
     id: "industry",
     q: "어떤 업종 DB가 있나요?",
     a: `지금 받을 수 있는 업종은 ${industryOptions.filter((o) => o.live).map((o) => `${o.name}(건당 ${won(o.price ?? 0)}원)`).join(", ")}입니다. 모두 VAT 별도입니다. ${industryOptions.filter((o) => !o.live).map((o) => o.name).join(", ")}은 준비 중이며, 열리면 안내해 드립니다.`,
-    words: ["업종", "종류", "오토바이", "중고차", "리스", "보험", "수출", "장기렌트", "렌트"],
+    // "리스"만 쓰면 "광고주 리스트"에도 걸려서 뒤에 오는 말까지 붙인다.
+    words: ["업종", "종류", "오토바이", "중고차", "리스 ", "리스도", "리스는", "리스가", "보험", "수출", "장기렌트", "렌트"],
   },
   {
     id: "contact",
@@ -101,27 +103,34 @@ export const quickTopics = (mode: Mode) => quickIds[mode].map((id) => byMode[mod
 const norm = (text: string) => text.toLowerCase().replace(/\s+/g, " ").trim();
 
 // 금지: 사이트 보안, 다른 광고주 정보, 고객 정보 (설계 문서 3.4). 이 검사가 답 찾기보다 먼저다.
-const BLOCK: RegExp[] = [
-  /(다른|타)\s*(광고주|업체|영업|회원)/,
-  /광고주\s*(는|가|들|수)?\s*(몇|누구|명단|목록)/,
-  /(누가|누구누구).{0,8}(받|광고)/,
+// 언제나 거른다: 보안, 광고주 명단·숫자
+const ALWAYS: RegExp[] = [
   /(관리자|어드민|admin).{0,10}(페이지|주소|화면|로그인|계정|비번|비밀번호|아이디|url)/,
   /(서버|데이터베이스|database|해킹|api|토큰|소스 ?코드|키값|시스템 구조|보안)/,
+  /광고주\s*(가|는|들|의)?\s*(총\s*)?(몇|누구|명단|목록|리스트|수(?=\s|$|가|는|를|좀|알))/,
+  /(업체|회원|광고주|가입자).{0,6}몇\s*(개|명|곳|군데)/,
 ];
-const PERSON_NAME_ASK = /님도/;
-const PERSON_NAME_VERB = /(받|가입|광고|써|쓰)/;
-const CUSTOMER = /(고객|신청자|db|디비)/;
-const CUSTOMER_INFO = /(번호|연락처|이름|명단|정보|주소)/;
+// 다른 광고주를 묻는 말. 단, DB를 같이 받는지(단독 여부)를 묻는 정책 질문은 거르지 않는다.
+const OTHERS: RegExp[] = [
+  /(다른|타)\s*(광고주|업체|영업|회원)/,
+  /(누가|누구누구).{0,8}(받|광고)/,
+  /(님|사장|대표|씨|팀장|실장|부장)도.*(받|가입|광고|써|쓰)/,
+];
+const EXCLUSIVE_ASK = /(같은|중복|단독).{0,4}(db|디비)|(db|디비).{0,4}(같은|중복|단독)/;
+// 고객 정보: 고객·DB와 연락처 같은 말이 같이 오면 거른다. 보는 곳("어디서")이나 내 번호 변경은 안내라 거르지 않는다.
+const CUSTOMER = /(고객|신청자|손님|db|디비)/;
+const CUSTOMER_INFO = /(번호|연락처|이름|명단|주소)/;
+const WHERE_OR_CHANGE = /(어디|바꾸|바꿀|변경|수정)/;
 const GIVE_ME = /(알려|보여|줘|뭐|뭔)/;
-// 단독 여부 질문("다른 광고주도 같은 DB 받나요?")은 정책 안내라 거르지 않는다.
-const EXCLUSIVE_ASK = /(같은|중복|단독)/;
 
 export function isBlocked(text: string): boolean {
-  const t = norm(text).replace(/(db|디비)\s*어때/g, "");
-  if (EXCLUSIVE_ASK.test(t)) return false;
-  if (BLOCK.some((r) => r.test(t))) return true;
-  if (PERSON_NAME_ASK.test(t) && PERSON_NAME_VERB.test(t)) return true;
-  return CUSTOMER.test(t) && CUSTOMER_INFO.test(t) && GIVE_ME.test(t);
+  // 회사 이름과 결번 안내 말("없는 번호")은 고객 정보 질문이 아니라서 미리 지운다.
+  const t = norm(text).replace(/(db|디비)\s*어때/g, "").replace(/(없는|결번)\s*번호|결번/g, "");
+  if (ALWAYS.some((r) => r.test(t))) return true;
+  if (OTHERS.some((r) => r.test(t)) && !EXCLUSIVE_ASK.test(t)) return true;
+  if (!CUSTOMER.test(t)) return false;
+  if (CUSTOMER_INFO.test(t) && !WHERE_OR_CHANGE.test(t)) return true;
+  return /정보/.test(t) && GIVE_ME.test(t);
 }
 
 export function answer(text: string, mode: Mode): Reply {

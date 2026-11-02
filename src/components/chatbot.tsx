@@ -54,13 +54,24 @@ export function Chatbot({ mode }: { mode: Mode }) {
   const end = useRef<HTMLDivElement>(null);
   const advertiser = mode === "advertiser";
 
-  // api는 상태를 새로 받을 때마다 바뀌므로, 그때마다 문의 목록도 다시 받아 새 답변의 빨간 점이 바로 뜬다.
-  const load = useCallback(async () => {
-    const r = await api<{ rows?: Inquiry[] }>("/api/support");
-    if (r.ok) setRows(r.data.rows ?? []);
-  }, [api]);
+  // api는 상태를 새로 받을 때마다(4초) 바뀐다. 그대로 의존하면 문의 목록도 4초마다 다시 받으므로 ref로 붙잡아 둔다.
+  const apiRef = useRef(api);
   useEffect(() => {
-    if (advertiser) load();
+    apiRef.current = api;
+  }, [api]);
+  const load = useCallback(async () => {
+    const r = await apiRef.current<{ rows?: Inquiry[] }>("/api/support");
+    if (r.ok) setRows(r.data.rows ?? []);
+    return r.ok ? (r.data.rows ?? []) : null;
+  }, []);
+  // 문의 목록은 처음, 1분마다, 창을 열 때 받는다.
+  useEffect(() => {
+    if (!advertiser) return;
+    load();
+    const t = setInterval(() => {
+      if (document.visibilityState === "visible") load();
+    }, 60_000);
+    return () => clearInterval(t);
   }, [advertiser, load]);
 
   // 중괄호 필수: 최신 브라우저의 scrollIntoView는 Promise를 돌려줘서, 그대로 반환하면 React가 정리 함수로 보고 화면이 깨진다.
@@ -68,16 +79,20 @@ export function Chatbot({ mode }: { mode: Mode }) {
     end.current?.scrollIntoView({ block: "end" });
   }, [msgs, open, draft]);
 
-  const unread = rows.filter((p) => isUnread(p) && shown[p.id] !== p.replyAt);
+  const unreadOf = (list: Inquiry[]) => list.filter((p) => isUnread(p) && shown[p.id] !== p.replyAt);
+  const unread = unreadOf(rows);
   const say = (...m: Msg[]) => setMsgs((prev) => [...prev, ...m]);
 
-  const toggle = () => {
+  const toggle = async () => {
     if (open) return setOpen(false);
     setOpen(true);
-    if (!unread.length) return;
-    say(...unread.map((p, i): Msg => ({ from: "bot", title: i === 0 ? "지난 문의에 답변이 왔어요" : undefined, text: qa(p) })));
-    setShown((s) => ({ ...s, ...Object.fromEntries(unread.map((p) => [p.id, p.replyAt!])) }));
-    api("/api/support", { op: "seen" });
+    if (!advertiser) return;
+    // 열 때 목록을 새로 받아서 보여준 답만 읽음으로 남긴다 (못 본 답이 읽음 처리되지 않게).
+    const fresh = unreadOf((await load()) ?? rows);
+    if (!fresh.length) return;
+    say(...fresh.map((p, i): Msg => ({ from: "bot", title: i === 0 ? "지난 문의에 답변이 왔어요" : undefined, text: qa(p) })));
+    setShown((s) => ({ ...s, ...Object.fromEntries(fresh.map((p) => [p.id, p.replyAt!])) }));
+    apiRef.current("/api/support", { op: "seen" });
   };
 
   const ask = (q: string, picked?: Topic) => {

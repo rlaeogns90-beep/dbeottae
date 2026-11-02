@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { balanceOf } from "@/lib/engine";
 import { won } from "@/lib/format";
 import { useStore } from "@/lib/store";
@@ -166,11 +166,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   // 챗봇 문의는 상태(state)가 아니라 별도 표에 있어서 화면을 옮길 때마다 답변 대기 건수를 다시 센다.
   const [pendingSupport, setPendingSupport] = useState(0);
+  // api는 상태를 새로 받을 때마다(4초) 바뀌므로 ref로 붙잡아, 화면을 옮길 때만 다시 센다.
+  const apiRef = useRef(api);
+  useEffect(() => {
+    apiRef.current = api;
+  }, [api]);
   const isAdmin = !!admin;
   useEffect(() => {
     if (!isAdmin) return;
-    api<{ rows?: { reply: string | null }[] }>("/api/support").then((r) => setPendingSupport(r.ok ? (r.data.rows ?? []).filter((p) => !p.reply).length : 0));
-  }, [isAdmin, api, path]);
+    apiRef.current<{ rows?: { reply: string | null }[] }>("/api/support").then((r) => setPendingSupport(r.ok ? (r.data.rows ?? []).filter((p) => !p.reply).length : 0));
+  }, [isAdmin, path]);
   if (!admin) return null;
 
   const waiting = state.leads.filter((l) => l.status === "waiting").length;
