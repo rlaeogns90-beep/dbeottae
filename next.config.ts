@@ -23,7 +23,11 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     // 첫 페이지 주소는 / 하나로 (예전 /login 주소는 영구 이동)
-    return [{ source: "/login", destination: "/", permanent: true }];
+    // 광고주 고객센터는 화면 오른쪽 아래 챗봇으로 옮겼다 (예전 주소는 홈으로)
+    return [
+      { source: "/login", destination: "/", permanent: true },
+      { source: "/app/support", destination: "/app", permanent: false },
+    ];
   },
 };
 

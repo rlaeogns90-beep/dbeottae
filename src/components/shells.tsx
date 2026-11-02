@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  Bell, ClipboardCheck, Headset, FileWarning, Home, Inbox, KeyRound, Layers, LogOut, Plug, ScrollText, Settings, ShieldCheck,
+  Bell, ClipboardCheck, FileWarning, Home, Inbox, KeyRound, Layers, LogOut, Plug, ScrollText, Settings, ShieldCheck,
   User, Users, Wallet, Briefcase, Clock3, Radio, MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
@@ -11,6 +11,7 @@ import { balanceOf } from "@/lib/engine";
 import { won } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import type { Admin, Advertiser, Partner, Session } from "@/lib/types";
+import { Chatbot } from "./chatbot";
 import { cx, Logo } from "./ui";
 
 function useGuard(role: Session["role"]) {
@@ -104,7 +105,6 @@ export function AdvertiserShell({ children }: { children: React.ReactNode }) {
     { href: "/app/leads", label: "DB 관리", icon: Inbox },
     { href: "/app/wallet", label: "예치금", icon: Wallet },
     { href: "/app/defects", label: "불량 처리", icon: FileWarning },
-    { href: "/app/support", label: "고객센터", icon: Headset },
     { href: "/app/me", label: "내 정보", icon: User },
   ];
   return (
@@ -127,6 +127,7 @@ export function AdvertiserShell({ children }: { children: React.ReactNode }) {
       </header>
       <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
       <BottomNav items={items} root="/app" />
+      <Chatbot mode="advertiser" />
     </div>
   );
 }

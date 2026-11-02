@@ -393,7 +393,7 @@ export function MainPage() {
       </section>
 
       <SiteFooter />
-      <Chatbot />
+      <Chatbot mode="main" />
     </div>
   );
 }
