@@ -3,9 +3,9 @@
 import { loadState } from "@/lib/server/db";
 import { adminFrom, audit, clientIp, forbidden, guarded, overLimit, tooMany } from "@/lib/server/ops";
 import { SITE_URL } from "@/lib/site";
-import { chargedVars, sendKakao, taskVars } from "@/lib/server/solapi";
+import { balanceVars, chargedVars, sendKakao, taskVars } from "@/lib/server/solapi";
 
-const TEST_LABEL: Record<string, string> = { stats: "통계", task: "관리자 확인 안내", charged: "충전 완료" };
+const TEST_LABEL: Record<string, string> = { stats: "통계", task: "관리자 확인 안내", charged: "충전 완료", remain: "잔여 수량 안내", empty: "소진 안내" };
 
 export const POST = guarded("알림톡 테스트", async (req) => {
   const admin = await adminFrom(req);
@@ -19,6 +19,10 @@ export const POST = guarded("알림톡 테스트", async (req) => {
   const r =
     which === "task"
       ? await sendKakao(cfg, to, cfg.templateTask ?? "", taskVars("deposit", "테스트 광고주 충전 신청 440,000원 (테스트 발송)"))
+      : which === "remain"
+      ? await sendKakao(cfg, to, cfg.templateRemain ?? "", balanceVars("테스트", 44000, 1))
+      : which === "empty"
+      ? await sendKakao(cfg, to, cfg.templateEmpty ?? "", balanceVars("테스트", 0, 0))
       : which === "charged"
       ? await sendKakao(cfg, to, cfg.templateCharged ?? "", chargedVars("테스트", 440000, 440000))
       : which === "stats"

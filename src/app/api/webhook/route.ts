@@ -7,7 +7,7 @@ import { mutate } from "@/lib/server/db";
 import { alert, clientIp, guarded, overLimit } from "@/lib/server/ops";
 import { loadState } from "@/lib/server/db";
 import { pushToSheet, sheetRow } from "@/lib/server/sheet";
-import { notifyAssigned, notifyStats } from "@/lib/server/solapi";
+import { notifyAssigned, notifyBalance, notifyStats } from "@/lib/server/solapi";
 import type { Lead } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -86,6 +86,7 @@ export const POST = guarded("웹훅", async (req) => {
   if (!result.duplicate) {
     const { data } = await loadState();
     await notifyAssigned(data, result.leadId).catch(() => {});
+    await notifyBalance(data, result.leadId).catch(() => {});
     await notifyStats(data, result.leadId).catch(() => {});
     const row = sheetRow(data, result.leadId);
     if (row) await pushToSheet([row]);

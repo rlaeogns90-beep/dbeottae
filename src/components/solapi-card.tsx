@@ -29,6 +29,8 @@ export function SolapiCard() {
     ["통계 알림 템플릿", !!sol.templateStats],
     ["관리자 확인 안내 템플릿", !!sol.templateTask],
     ["충전 완료 템플릿", !!sol.templateCharged],
+    ["잔여 수량 안내 템플릿", !!sol.templateRemain],
+    ["소진 안내 템플릿", !!sol.templateEmpty],
   ];
   const ready = checks.slice(0, 4).every(([, ok]) => ok);
 
@@ -40,7 +42,7 @@ export function SolapiCard() {
     setTimeout(() => setSaved(false), 1500);
   };
 
-  const test = async (which: "inquiry" | "stats" | "task" | "charged") => {
+  const test = async (which: "inquiry" | "stats" | "task" | "charged" | "remain" | "empty") => {
     setBusy(which);
     setTestMsg(null);
     const r = await api<{ error?: string }>("/api/admin/solapi-test", { to: testTo, which });
@@ -50,7 +52,7 @@ export function SolapiCard() {
 
   return (
     <Card>
-      <CardHeader title="솔라피 알림톡" desc="새 DB 배정·충전 완료는 광고주에게, DB 접수 통계와 관리자 확인 안내(가입·입금·불량·챗봇 문의)는 관리자에게 알림톡으로 보냅니다" />
+      <CardHeader title="솔라피 알림톡" desc="새 DB 배정·충전 완료·잔여 수량·소진 안내는 광고주에게, DB 접수 통계와 관리자 확인 안내(가입·입금·불량·챗봇 문의)는 관리자에게 알림톡으로 보냅니다" />
 
       <div className="space-y-3 border-b border-line px-5 py-4">
         <div className="flex items-center justify-between gap-4">
@@ -78,6 +80,8 @@ export function SolapiCard() {
         <Field label="통계 알림 받을 관리자 번호"><Input inputMode="numeric" value={sol.statsPhone ?? ""} onChange={(e) => set({ statsPhone: formatPhone(e.target.value) })} placeholder="010-0000-0000" /></Field>
         <Field label="관리자 확인 안내 템플릿 ID (관리자용)" hint="가입·입금·불량·챗봇 문의가 들어오면"><Input value={sol.templateTask ?? ""} onChange={(e) => set({ templateTask: e.target.value.trim() })} placeholder="KA01TP..." /></Field>
         <Field label="충전 완료 템플릿 ID (광고주용)" hint="입금을 확인하면 광고주에게"><Input value={sol.templateCharged ?? ""} onChange={(e) => set({ templateCharged: e.target.value.trim() })} placeholder="KA01TP..." /></Field>
+        <Field label="잔여 수량 안내 템플릿 ID (광고주용)" hint="구매 가능한 DB가 1건 남으면"><Input value={sol.templateRemain ?? ""} onChange={(e) => set({ templateRemain: e.target.value.trim() })} placeholder="KA01TP..." /></Field>
+        <Field label="소진 안내 템플릿 ID (광고주용)" hint="예치금을 다 써서 수신이 꺼지면"><Input value={sol.templateEmpty ?? ""} onChange={(e) => set({ templateEmpty: e.target.value.trim() })} placeholder="KA01TP..." /></Field>
       </div>
 
       <div className="border-t border-line px-5 py-4">
@@ -122,6 +126,8 @@ export function SolapiCard() {
           <Button variant="secondary" size="sm" disabled={!ready || !sol.templateStats || !!busy} onClick={() => test("stats")}>{busy === "stats" ? "보내는 중…" : "통계 알림 보내기"}</Button>
           <Button variant="secondary" size="sm" disabled={!ready || !sol.templateTask || !!busy} onClick={() => test("task")}>{busy === "task" ? "보내는 중…" : "관리자 확인 안내 보내기"}</Button>
           <Button variant="secondary" size="sm" disabled={!ready || !sol.templateCharged || !!busy} onClick={() => test("charged")}>{busy === "charged" ? "보내는 중…" : "충전 완료 보내기"}</Button>
+          <Button variant="secondary" size="sm" disabled={!ready || !sol.templateRemain || !!busy} onClick={() => test("remain")}>{busy === "remain" ? "보내는 중…" : "잔여 수량 안내 보내기"}</Button>
+          <Button variant="secondary" size="sm" disabled={!ready || !sol.templateEmpty || !!busy} onClick={() => test("empty")}>{busy === "empty" ? "보내는 중…" : "소진 안내 보내기"}</Button>
         </div>
         {testMsg && <p className={cx("mt-2 text-[13px]", testMsg.ok ? "text-brand" : "text-bad")}>{testMsg.text}</p>}
         <p className="mt-2"><Badge tone={keyReady ? "green" : "orange"}>{keyReady ? "서버에 솔라피 키 등록됨" : "이 환경에는 솔라피 키가 없습니다 (운영 사이트에서만 발송됩니다)"}</Badge></p>

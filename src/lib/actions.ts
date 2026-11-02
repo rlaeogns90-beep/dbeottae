@@ -271,6 +271,7 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
           templateInquiry: t(p.templateInquiry, cur.templateInquiry), templateStats: t(p.templateStats, cur.templateStats), statsPhone: t(p.statsPhone, cur.statsPhone, 20),
           enabled: typeof p.enabled === "boolean" ? p.enabled : cur.enabled, statsEnabled: typeof p.statsEnabled === "boolean" ? p.statsEnabled : cur.statsEnabled,
           templateTask: t(p.templateTask, cur.templateTask ?? ""), templateCharged: t(p.templateCharged, cur.templateCharged ?? ""),
+          templateRemain: t(p.templateRemain, cur.templateRemain ?? ""), templateEmpty: t(p.templateEmpty, cur.templateEmpty ?? ""),
           taskPhones: p.taskPhones && typeof p.taskPhones === "object" ? taskPhonesOf(p.taskPhones) : cur.taskPhones,
         };
       }

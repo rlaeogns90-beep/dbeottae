@@ -19,6 +19,19 @@ export const minChargeOf = (s: State, industry?: string) =>
 export const balanceOf = (s: State, advertiserId: string) =>
   s.wallet.filter((t) => t.advertiserId === advertiserId).reduce((sum, t) => sum + t.amount, 0);
 
+/**
+ * DB 배정 직후 광고주에게 보낼 예치금 안내. 수신이 자동으로 꺼졌으면(1건도 못 받음) 소진,
+ * 아니고 구매 가능한 건수가 딱 1건이면 잔여 수량. 1건씩 차감되므로 같은 안내가 연달아 가지 않는다.
+ */
+export function balanceNotice(s: State, advertiserId: string): { kind: "remain" | "empty"; balance: number; left: number } | null {
+  const adv = s.advertisers.find((a) => a.id === advertiserId);
+  if (!adv) return null;
+  const balance = balanceOf(s, advertiserId);
+  const left = Math.max(0, Math.floor(balance / priceOf(s, adv.industry)));
+  if (!adv.receiving && adv.offBy === "auto" && left === 0) return { kind: "empty", balance, left };
+  return left === 1 ? { kind: "remain", balance, left } : null;
+}
+
 // 날짜 비교는 서버(UTC)에서 돌아도 한국 시간 기준이 되도록 +9시간 옮겨서 계산한다.
 const kst = (d: Date) => new Date(d.getTime() + 9 * 3600_000);
 

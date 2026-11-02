@@ -195,6 +195,10 @@ export interface Settings {
     templateTask?: string;
     /** 충전 완료 템플릿(광고주용): 관리자가 입금을 확인하면 */
     templateCharged?: string;
+    /** 잔여 수량 안내 템플릿(광고주용): DB를 받고 구매 가능한 건수가 1건 남으면 */
+    templateRemain?: string;
+    /** 소진 안내 템플릿(광고주용): 예치금을 다 써서 수신이 자동으로 꺼지면 */
+    templateEmpty?: string;
     /** 관리자 확인 안내를 받을 관리자 번호 (종류마다 최대 3개) */
     taskPhones?: Partial<Record<TaskKind, string[]>>;
     apiKey?: string;
