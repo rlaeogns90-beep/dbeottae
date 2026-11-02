@@ -6,6 +6,7 @@ import { useState } from "react";
 import { CONSULTS, consultTone } from "@/components/lead-parts";
 import { Badge, Button, Card, cx, Empty, Field, Input, Modal, Notice, PageHeader, Select, Stat, Table, td, th } from "@/components/ui";
 import { dateTime, formatPhone, timeAgo, won } from "@/lib/format";
+import { matchLead, quickRange, type QuickRange } from "@/lib/lead-filter";
 import { useStore } from "@/lib/store";
 import type { ConsultStatus, LeadStatus } from "@/lib/types";
 
@@ -19,6 +20,7 @@ const tabs: { key: "all" | LeadStatus; label: string }[] = [
 const sameDay = (iso: string, now: Date) => new Date(iso).toDateString() === now.toDateString();
 const uniq = (xs: (string | undefined)[]) => [...new Set(xs.filter((x): x is string => !!x))].sort();
 const emptyForm = { name: "", phone: "", car: "", memo: "", site: "", pageName: "", term: "", groupId: "" };
+const quicks: [QuickRange, string][] = [["today", "오늘"], ["yesterday", "어제"], ["week", "최근 7일"], ["month", "이번 달"]];
 
 export default function RealtimePage() {
   const { state, now, simulateLead, deleteLead } = useStore();
@@ -26,6 +28,9 @@ export default function RealtimePage() {
   const [page, setPage] = useState("");
   const [site, setSite] = useState("");
   const [consult, setConsult] = useState<"" | "none" | ConsultStatus>("");
+  const [q, setQ] = useState("");
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [del, setDel] = useState<string | null>(null);
@@ -41,12 +46,18 @@ export default function RealtimePage() {
   const filtered = state.leads.filter((l) => {
     if (page && l.pageName !== page) return false;
     if (site && l.site !== site) return false;
+    if (!matchLead(l, { q, from, to })) return false;
     const c = consultOf(l.id)?.consult;
     if (consult === "none") return !c;
     return !consult || c === consult;
   });
   const list = [...filtered].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).filter((l) => tab === "all" || l.status === tab);
-  const filtering = page || site || consult;
+  const filtering = page || site || consult || q || from || to;
+  const range = (k: QuickRange) => {
+    const r = quickRange(k, now);
+    setFrom(r.from);
+    setTo(r.to);
+  };
 
   return (
     <div>
@@ -65,6 +76,23 @@ export default function RealtimePage() {
       </div>
 
       <div className="mb-3 flex flex-wrap items-end gap-2">
+        <label className="flex w-full flex-col gap-1 text-xs font-semibold text-sub sm:w-56">
+          검색
+          <Input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="이름·연락처·차종 검색" />
+        </label>
+        <div className="flex flex-col gap-1 text-xs font-semibold text-sub">
+          접수 날짜
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Input type="date" aria-label="접수 시작일" className="w-36" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
+            <span className="text-mute">~</span>
+            <Input type="date" aria-label="접수 종료일" className="w-36" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
+            {quicks.map(([k, label]) => (
+              <button key={k} type="button" onClick={() => range(k)} className="h-9 rounded-full border border-line bg-white px-3 text-[13px] font-semibold text-sub hover:bg-page">
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
         <label className="flex flex-col gap-1 text-xs font-semibold text-sub">
           페이지명
           <Select className="w-44" value={page} onChange={(e) => setPage(e.target.value)}>
@@ -88,7 +116,7 @@ export default function RealtimePage() {
           </Select>
         </label>
         {filtering && (
-          <Button variant="secondary" size="sm" className="mb-0.5" onClick={() => { setPage(""); setSite(""); setConsult(""); }}>
+          <Button variant="secondary" size="sm" className="mb-0.5" onClick={() => { setPage(""); setSite(""); setConsult(""); setQ(""); setFrom(""); setTo(""); }}>
             필터 해제
           </Button>
         )}
