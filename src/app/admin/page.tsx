@@ -83,9 +83,9 @@ export default function RealtimePage() {
         <div className="flex flex-col gap-1 text-xs font-semibold text-sub">
           접수 날짜
           <div className="flex flex-wrap items-center gap-1.5">
-            <Input type="date" aria-label="접수 시작일" className="w-36" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} />
+            <div className="w-36"><Input type="date" aria-label="접수 시작일" value={from} max={to || undefined} onChange={(e) => setFrom(e.target.value)} /></div>
             <span className="text-mute">~</span>
-            <Input type="date" aria-label="접수 종료일" className="w-36" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} />
+            <div className="w-36"><Input type="date" aria-label="접수 종료일" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} /></div>
             {quicks.map(([k, label]) => (
               <button key={k} type="button" onClick={() => range(k)} className="h-9 rounded-full border border-line bg-white px-3 text-[13px] font-semibold text-sub hover:bg-page">
                 {label}
