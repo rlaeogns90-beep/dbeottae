@@ -2,11 +2,11 @@
 
 import {
   Bell, ClipboardCheck, Headset, FileWarning, Home, Inbox, KeyRound, Layers, LogOut, Plug, ScrollText, Settings, ShieldCheck,
-  User, Users, Wallet, Briefcase, Clock3, Radio,
+  User, Users, Wallet, Briefcase, Clock3, Radio, MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { balanceOf } from "@/lib/engine";
 import { won } from "@/lib/format";
 import { useStore } from "@/lib/store";
@@ -161,8 +161,15 @@ export function PartnerShell({ children }: { children: React.ReactNode }) {
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const admin = useAdmin();
-  const { state, alerts } = useStore();
+  const { state, alerts, api } = useStore();
   const path = usePathname();
+  // 챗봇 문의는 상태(state)가 아니라 별도 표에 있어서 화면을 옮길 때마다 답변 대기 건수를 다시 센다.
+  const [pendingSupport, setPendingSupport] = useState(0);
+  const isAdmin = !!admin;
+  useEffect(() => {
+    if (!isAdmin) return;
+    api<{ rows?: { reply: string | null }[] }>("/api/support").then((r) => setPendingSupport(r.ok ? (r.data.rows ?? []).filter((p) => !p.reply).length : 0));
+  }, [isAdmin, api, path]);
   if (!admin) return null;
 
   const waiting = state.leads.filter((l) => l.status === "waiting").length;
@@ -185,7 +192,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         { href: "/admin/members", label: "가입 승인", icon: ClipboardCheck, count: pendingMembers },
         { href: "/admin/deposits", label: "입금 확인", icon: Wallet, count: pendingDeposits },
         { href: "/admin/defects", label: "불량 처리 승인", icon: FileWarning, count: pendingDefects },
-        { href: "/admin/support", label: "고객센터", icon: Headset },
+        { href: "/admin/support", label: "챗봇 문의", icon: MessageCircle, count: pendingSupport },
       ],
     },
     {

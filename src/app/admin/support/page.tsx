@@ -1,6 +1,6 @@
 "use client";
 
-// 고객센터 관리: 광고주 문의에 답변한다. (관리자만 볼 수 있다)
+// 챗봇 문의 관리: 광고주가 챗봇에서 남긴 문의에 답변한다. (관리자만 볼 수 있다)
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Button, Card, ConfirmButton, cx, Empty, PageHeader, Textarea } from "@/components/ui";
 import { dateTime } from "@/lib/format";
@@ -14,7 +14,7 @@ interface Post {
 export default function AdminSupportPage() {
   const { api } = useStore();
   const [rows, setRows] = useState<Post[] | null>(null);
-  const [tab, setTab] = useState<"all" | "todo">("todo");
+  const [tab, setTab] = useState<"todo" | "done">("todo");
   const [open, setOpen] = useState<number | null>(null);
   const [draft, setDraft] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -27,9 +27,9 @@ export default function AdminSupportPage() {
     load();
   }, [load]);
 
-  const list = (rows ?? []).filter((p) => (tab === "todo" ? !p.reply : true));
+  const list = (rows ?? []).filter((p) => (tab === "todo" ? !p.reply : !!p.reply));
   const todo = (rows ?? []).filter((p) => !p.reply).length;
-  const tabs = [["todo", `답변 대기 ${todo}`], ["all", "전체"]] as const;
+  const tabs = [["todo", `답변 대기 ${todo}`], ["done", `답변 완료 ${(rows ?? []).length - todo}`]] as const;
 
   const send = async (id: number, op: "reply" | "delete") => {
     setErr(null);
@@ -42,7 +42,7 @@ export default function AdminSupportPage() {
 
   return (
     <div className="max-w-4xl">
-      <PageHeader title="고객센터" desc="광고주 문의에 답변합니다. 이 화면은 관리자만 볼 수 있습니다." />
+      <PageHeader title="챗봇 문의" desc="광고주가 챗봇에서 남긴 문의에 답변합니다. 답변은 광고주 챗봇 창에 표시됩니다." />
       <div className="mb-4 inline-flex rounded-lg bg-soft p-0.5">
         {tabs.map(([k, label]) => (
           <button key={k} type="button" onClick={() => setTab(k)} className={cx("h-9 rounded-md px-4 text-sm font-semibold whitespace-nowrap", tab === k ? "bg-white text-ink shadow-sm" : "text-mute hover:text-sub")}>
@@ -52,7 +52,7 @@ export default function AdminSupportPage() {
       </div>
       <Card>
         {rows === null ? null : list.length === 0 ? (
-          <Empty title={tab === "todo" ? "답변 대기 중인 문의가 없습니다" : "등록된 문의가 없습니다"} />
+          <Empty title={tab === "todo" ? "답변 대기 중인 문의가 없습니다" : "답변한 문의가 없습니다"} />
         ) : (
           <ul className="divide-y divide-line">
             {list.map((p) => (
