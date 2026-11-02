@@ -41,7 +41,7 @@ const MASTER_ACTIONS = new Set<Action["type"]>(["createAdmin", "deleteAdmin"]);
 
 export const MIN_PASSWORD = 4;
 /** 배정 건마다 남기는 상담 메모 기록 수 */
-export const MAX_MEMOS = 200;
+export const MAX_MEMOS = 50;
 
 const CONSULT_VALUES = ["대기", "견적발송", "계약", "관리", "계약취소"];
 export const LOGIN_ID = /^[a-zA-Z0-9_]{4,20}$/;
@@ -164,7 +164,8 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
       return ok({
         ...s,
         assignments: s.assignments.map((x) =>
-          x.id === a.id ? { ...x, memo: text, memos: [{ at, text }, ...(x.memos ?? [])].slice(0, MAX_MEMOS) } : x,
+          // 기록이 처음 생길 때 예전 단일 메모를 시각 없이 맨 뒤에 남긴다 (지우지 않게).
+          x.id === a.id ? { ...x, memo: text, memos: [{ at, text }, ...(x.memos ?? (x.memo ? [{ text: x.memo }] : []))].slice(0, MAX_MEMOS) } : x,
         ),
       });
     }

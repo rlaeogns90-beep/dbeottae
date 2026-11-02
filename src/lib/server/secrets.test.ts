@@ -15,3 +15,14 @@ test("영업자에게는 광고주 상담 메모와 메모 기록을 보내지 �
   assert.equal(seen.memo, "");
   assert.equal(seen.memos, undefined);
 });
+
+test("관리자 화면 데이터에도 메모 기록은 보내지 않는다 (요청 범위 밖, 데이터 크기)", () => {
+  const base = seed(Date.parse("2026-11-02T03:00:00Z"));
+  const asg = base.assignments.find((a) => a.advertiserId === "adv1")!;
+  const r = runAction(base, { role: "advertiser", id: "adv1" }, { type: "addMemo", id: asg.id, text: "메모" });
+  if ("error" in r) throw new Error(r.error);
+  const admin = r.state.admins[0];
+  const seen = forClient(r.state, { role: "admin", id: admin.id }).assignments.find((a) => a.id === asg.id)!;
+  assert.equal(seen.memos, undefined);
+  assert.equal(seen.memo, "메모");
+});

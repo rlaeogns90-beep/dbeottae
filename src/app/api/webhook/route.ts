@@ -2,7 +2,7 @@
 // 주소: /api/webhook?key=연결키  ·  JSON 또는 폼 형식 모두 받는다.
 // 키 하나당 1분에 60건까지, 같은 연락처가 10분 안에 다시 들어오면 중복으로 보고 받지 않는다.
 // 실패하면 관리자 화면에 알림을 남긴다.
-import { routeLead, uid } from "@/lib/engine";
+import { noticeAfterAssign, routeLead, uid } from "@/lib/engine";
 import { mutate } from "@/lib/server/db";
 import { alert, clientIp, guarded, overLimit } from "@/lib/server/ops";
 import { loadState } from "@/lib/server/db";
@@ -13,7 +13,7 @@ import type { Lead } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 type Outcome =
-  | { status: 200; leadId: string; assigned: boolean; waitReason?: string; duplicate?: boolean }
+  | { status: 200; leadId: string; assigned: boolean; waitReason?: string; duplicate?: boolean; notice?: ReturnType<typeof noticeAfterAssign> }
   | { status: 401 | 403; error: string };
 
 /** +82 10-1234-5678, 821012345678 같은 번호를 010-1234-5678로 맞춘다. */
@@ -78,7 +78,7 @@ export const POST = guarded("웹훅", async (req) => {
     };
     const next = routeLead(s, lead);
     const saved = next.leads.find((l) => l.id === lead.id)!;
-    return { state: next, result: { status: 200, leadId: lead.id, assigned: saved.status === "assigned", waitReason: saved.waitReason } };
+    return { state: next, result: { status: 200, leadId: lead.id, assigned: saved.status === "assigned", waitReason: saved.waitReason, notice: noticeAfterAssign(next, lead.id) } };
   });
 
   if (result.status !== 200) return fail(result.status, result.error, `웹훅 접수 실패 (IP ${ip})`);
@@ -86,7 +86,7 @@ export const POST = guarded("웹훅", async (req) => {
   if (!result.duplicate) {
     const { data } = await loadState();
     await notifyAssigned(data, result.leadId).catch(() => {});
-    await notifyBalance(data, result.leadId).catch(() => {});
+    await notifyBalance(data, result.notice ?? null).catch(() => {});
     await notifyStats(data, result.leadId).catch(() => {});
     const row = sheetRow(data, result.leadId);
     if (row) await pushToSheet([row]);

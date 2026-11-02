@@ -1,5 +1,6 @@
 // 변경 작업 1건을 받아 권한·형식을 확인하고 최신 상태에 적용해 저장한다. 관리자 작업은 기록을 남긴다.
 import { runAction, type Action } from "@/lib/actions";
+import { noticeAfterAssign } from "@/lib/engine";
 import { crossSite, findUser, readToken, stillValid } from "@/lib/server/auth";
 import { loadState, mutate } from "@/lib/server/db";
 import { audit, clientIp, guarded, overLimit, tooMany } from "@/lib/server/ops";
@@ -30,17 +31,20 @@ export const POST = guarded("작업 저장", async (req) => {
   const action = (await req.json().catch(() => null)) as Action | null;
   if (!action || typeof action.type !== "string") return Response.json({ error: "잘못된 요청입니다." }, { status: 400 });
 
-  const error = await mutate((s) => {
-    if (!stillValid(s, who)) return { state: s, result: "다시 로그인해 주세요." };
+  const assigning = (action.type === "assignWaiting" || action.type === "assignWaitingToGroup") && who.role === "admin";
+  const { error, notice } = await mutate<{ error: string | null; notice: ReturnType<typeof noticeAfterAssign> }>((s) => {
+    if (!stillValid(s, who)) return { state: s, result: { error: "다시 로그인해 주세요.", notice: null } };
     const r = runAction(s, who, action);
-    return "error" in r ? { state: s, result: r.error } : { state: r.state, result: null };
+    if ("error" in r) return { state: s, result: { error: r.error, notice: null } };
+    // 잔여·소진 안내는 이 배정을 저장하는 순간의 잔액으로 정한다.
+    return { state: r.state, result: { error: null, notice: assigning ? noticeAfterAssign(r.state, (action as { leadId: string }).leadId) : null } };
   });
   if (error) return Response.json({ error }, { status: 400 });
   // 관리자가 대기 DB를 직접 배정했을 때도 해당 광고주에게 문의 접수 알림톡을 보낸다.
-  if ((action.type === "assignWaiting" || action.type === "assignWaitingToGroup") && who.role === "admin") {
+  if (assigning && "leadId" in action) {
     const { data: fresh } = await loadState();
     await notifyAssigned(fresh, action.leadId).catch(() => {});
-    await notifyBalance(fresh, action.leadId).catch(() => {});
+    await notifyBalance(fresh, notice).catch(() => {});
   }
   // 광고주의 충전 신청·불량 신청은 관리자 확인 안내 알림톡으로 관리자에게, 관리자의 입금 확인은 충전 완료 알림톡으로 광고주에게 보낸다.
   if (action.type === "requestDeposit" || action.type === "reportDefect" || (action.type === "handleDeposit" && action.ok)) {

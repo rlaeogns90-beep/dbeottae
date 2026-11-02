@@ -4,7 +4,7 @@
 // - 보내다 실패하면 관리자 알림에 남기고, 접수·배정 처리는 그대로 진행한다.
 import "server-only";
 import { createHmac, randomBytes } from "node:crypto";
-import { balanceNotice } from "../engine";
+import type { noticeAfterAssign } from "../engine";
 import { SITE_URL } from "../site";
 import type { Assignment, Lead, Settings, State, TaskKind } from "../types";
 import { alert } from "./ops";
@@ -155,14 +155,15 @@ export const balanceVars = (name: string, balance: number, left: number): Record
   url: `${host}/app/wallet`,
 });
 
-/** DB가 배정된 직후: 구매 가능한 DB가 1건 남으면 잔여 수량 안내, 예치금이 소진돼 수신이 꺼지면 소진 안내(광고주) */
-export async function notifyBalance(s: State, leadId: string) {
+/**
+ * DB가 배정된 직후: 구매 가능한 DB가 1건 남으면 잔여 수량 안내, 예치금이 소진돼 수신이 꺼지면 소진 안내(광고주).
+ * 안내 종류(n)는 배정을 저장하는 순간에 계산해 넘겨받는다(noticeAfterAssign). 나중에 다시 읽으면 동시 접수 때 중복·누락된다.
+ */
+export async function notifyBalance(s: State, n: ReturnType<typeof noticeAfterAssign>) {
   const cfg = s.settings.solapi;
-  if (!cfg.enabled) return;
-  const asg = s.assignments.find((a) => a.leadId === leadId);
-  const adv = asg && s.advertisers.find((a) => a.id === asg.advertiserId);
-  const n = adv && balanceNotice(s, adv.id);
-  if (!adv || !n) return;
+  if (!cfg.enabled || !n) return;
+  const adv = s.advertisers.find((a) => a.id === n.advertiserId);
+  if (!adv) return;
   const [template, label] = n.kind === "empty" ? [cfg.templateEmpty, "소진 안내"] : [cfg.templateRemain, "잔여 수량 안내"];
   if (!template) return;
   await report(`${adv.name} 광고주에게 ${label} 알림톡`, await sendKakao(cfg, adv.phone, template, balanceVars(adv.name, n.balance, n.left)));

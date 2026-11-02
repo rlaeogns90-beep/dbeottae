@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { assign, balanceNotice } from "./engine";
+import { assign, balanceNotice, noticeAfterAssign } from "./engine";
 import { seed } from "./seed";
 import type { State } from "./types";
 
@@ -28,3 +28,8 @@ test("1건분에서 1건 받으면 소진 안내만", () => {
 });
 
 test("없는 광고주", () => assert.equal(balanceNotice(base, "nobody"), null));
+
+test("배정 저장 시점의 상태로 안내를 정한다 (배정된 광고주 포함)", () => {
+  assert.deepEqual(noticeAfterAssign(after(2), leadId), { advertiserId: "adv1", kind: "remain", balance: 44000, left: 1 });
+  assert.equal(noticeAfterAssign(withBalance(2), leadId), null); // 아직 배정 전
+});

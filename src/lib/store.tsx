@@ -157,7 +157,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const t = setInterval(() => setNow(new Date()), 15_000);
     // 아직 서버로 보내지 못한 작업(메모 저장 등)이 있으면 새로고침·창 닫기 전에 브라우저가 한 번 묻는다.
     const onLeave = (e: BeforeUnloadEvent) => {
-      if (pending.current > 0) e.preventDefault();
+      if (pending.current > 0) {
+        e.preventDefault();
+        e.returnValue = ""; // 예전 브라우저용
+      }
     };
     window.addEventListener("beforeunload", onLeave);
     return () => {

@@ -32,6 +32,13 @@ export function balanceNotice(s: State, advertiserId: string): { kind: "remain" 
   return left === 1 ? { kind: "remain", balance, left } : null;
 }
 
+/** 방금 배정된 DB의 광고주에게 보낼 예치금 안내. 배정을 저장하는 같은 순간의 상태로 계산해야 동시 접수 때 중복·누락이 없다. */
+export function noticeAfterAssign(s: State, leadId: string) {
+  const asg = s.assignments.find((a) => a.leadId === leadId);
+  const n = asg && balanceNotice(s, asg.advertiserId);
+  return asg && n ? { advertiserId: asg.advertiserId, ...n } : null;
+}
+
 // 날짜 비교는 서버(UTC)에서 돌아도 한국 시간 기준이 되도록 +9시간 옮겨서 계산한다.
 const kst = (d: Date) => new Date(d.getTime() + 9 * 3600_000);
 

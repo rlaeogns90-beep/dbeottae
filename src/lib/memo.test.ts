@@ -30,12 +30,12 @@ test("빈 글과 2,001자는 거절", () => {
   assert.ok("error" in add(base, mine.id, "가".repeat(2001)));
 });
 
-test("기록은 최대 200개", () => {
+test("기록은 최대 50개", () => {
   let s = base;
-  for (let i = 0; i < 201; i++) s = stateOf(add(s, mine.id, `메모 ${i}`));
+  for (let i = 0; i < 51; i++) s = stateOf(add(s, mine.id, `메모 ${i}`));
   const a = s.assignments.find((x) => x.id === mine.id)!;
-  assert.equal(a.memos?.length, 200);
-  assert.equal(a.memos?.[0].text, "메모 200");
+  assert.equal(a.memos?.length, 50);
+  assert.equal(a.memos?.[0].text, "메모 50");
 });
 
 test("이전 단일 메모는 시각 없는 한 줄", () => {
@@ -44,4 +44,11 @@ test("이전 단일 메모는 시각 없는 한 줄", () => {
   assert.equal(latestMemo({ memo: "옛 메모", memos: undefined }), "옛 메모");
   assert.equal(latestMemo({ memo: "b", memos: [{ at: "x", text: "b" }, { at: "y", text: "a" }] }), "b");
   assert.equal(latestMemo({ memo: "", memos: [] }), undefined);
+});
+
+test("예전 단일 메모는 새 메모를 저장해도 기록 맨 뒤에 남는다", () => {
+  const old: State = { ...base, assignments: base.assignments.map((x) => (x.id === mine.id ? { ...x, memo: "3일 오후 재통화", memos: undefined } : x)) };
+  const a = stateOf(add(old, mine.id, "새 통화")).assignments.find((x) => x.id === mine.id)!;
+  assert.deepEqual(memoLog(a).map((m) => m.text), ["새 통화", "3일 오후 재통화"]);
+  assert.equal(memoLog(a)[1].at, undefined);
 });
