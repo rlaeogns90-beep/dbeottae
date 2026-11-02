@@ -5,7 +5,7 @@ import { adminFrom, audit, clientIp, forbidden, guarded, overLimit, tooMany } fr
 import { SITE_URL } from "@/lib/site";
 import { chargedVars, sendKakao, taskVars } from "@/lib/server/solapi";
 
-const TEST_LABEL: Record<string, string> = { stats: "통계", task: "처리 알림", charged: "충전 완료" };
+const TEST_LABEL: Record<string, string> = { stats: "통계", task: "관리자 확인 안내", charged: "충전 완료" };
 
 export const POST = guarded("알림톡 테스트", async (req) => {
   const admin = await adminFrom(req);

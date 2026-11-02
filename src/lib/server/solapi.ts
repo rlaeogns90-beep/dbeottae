@@ -108,7 +108,7 @@ export const TASK_LABEL: Record<TaskKind, { name: string; path: string }> = {
   member: { name: "가입 승인", path: "/admin/members" },
   deposit: { name: "입금 확인", path: "/admin/deposits" },
   defect: { name: "불량 처리", path: "/admin/defects" },
-  support: { name: "고객센터 문의", path: "/admin/support" },
+  support: { name: "챗봇 문의", path: "/admin/support" },
 };
 
 const kstTime = (d = new Date()) => new Date(d.getTime() + 9 * 3600_000).toISOString().slice(5, 16).replace("-", "/").replace("T", " ");
@@ -120,7 +120,7 @@ export const taskVars = (kind: TaskKind, detail: string): Record<string, string>
   url: `${host}${TASK_LABEL[kind].path}`,
 });
 
-/** 처리할 일이 새로 생겼을 때: 처리 알림톡(그 종류에 등록한 관리자 번호들) */
+/** 처리할 일이 새로 생겼을 때: 관리자 확인 안내 알림톡(그 종류에 등록한 관리자 번호들) */
 export async function notifyTask(s: State, kind: TaskKind, detail: string) {
   const cfg = s.settings.solapi;
   const phones = cfg.taskPhones?.[kind] ?? [];

@@ -81,7 +81,7 @@ function invalid(a: Action): string | null {
 export const TASK_KINDS: TaskKind[] = ["member", "deposit", "defect", "support"];
 export const MAX_TASK_PHONES = 3;
 
-/** 처리 알림 번호: 정해진 종류만, 종류마다 숫자 10~11자리 번호 최대 3개 */
+/** 관리자 확인 안내 번호: 정해진 종류만, 종류마다 숫자 10~11자리 번호 최대 3개 */
 function taskPhonesOf(v: object): Partial<Record<TaskKind, string[]>> {
   const src = v as Record<string, unknown>;
   return Object.fromEntries(

@@ -41,7 +41,7 @@ export const POST = guarded("작업 저장", async (req) => {
     const { data: fresh } = await loadState();
     await notifyAssigned(fresh, action.leadId).catch(() => {});
   }
-  // 광고주의 충전 신청·불량 신청은 처리 알림톡으로 관리자에게, 관리자의 입금 확인은 충전 완료 알림톡으로 광고주에게 보낸다.
+  // 광고주의 충전 신청·불량 신청은 관리자 확인 안내 알림톡으로 관리자에게, 관리자의 입금 확인은 충전 완료 알림톡으로 광고주에게 보낸다.
   if (action.type === "requestDeposit" || action.type === "reportDefect" || (action.type === "handleDeposit" && action.ok)) {
     const { data: fresh } = await loadState();
     const name = (findUser(fresh, who) as { name: string } | undefined)?.name ?? "";
