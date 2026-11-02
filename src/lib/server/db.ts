@@ -49,6 +49,8 @@ export const ensureTable = () =>
       advertiser_id text, title text not null, body text not null,
       reply text, reply_at timestamptz, replied_by text
     )`;
+    // 광고주가 답변을 읽은 시각. 챗봇 버튼의 빨간 점을 끄는 데 쓴다.
+    await sql`alter table support_posts add column if not exists seen_at timestamptz`;
     await sql`create table if not exists app_state_backups (
       id bigserial primary key, at timestamptz not null default now(), rev int not null, data jsonb not null
     )`;
