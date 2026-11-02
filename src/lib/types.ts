@@ -88,7 +88,10 @@ export interface Assignment {
   method: "auto" | "admin" | "external";
   amount: number;
   consult: ConsultStatus;
+  /** 가장 최근 상담 메모 (엑셀 받기·예전 화면용) */
   memo: string;
+  /** 상담 메모 기록, 최신이 앞 (최대 200개). 예전 데이터에는 없다. */
+  memos?: { at: string; text: string }[];
 }
 
 export type WalletType = "charge" | "debit" | "refund" | "adjust";

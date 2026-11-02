@@ -47,6 +47,7 @@ interface Store {
   setReceiving: (advertiserId: string, on: boolean) => Result;
   requestDeposit: (advertiserId: string, amount: number, depositor: string) => Result;
   updateAssignment: (id: string, patch: Partial<Pick<Assignment, "consult" | "memo">>) => void;
+  addMemo: (id: string, text: string) => void;
   reportDefect: (assignmentId: string, reason: DefectReason, fileName?: string) => Result;
   approveMember: (kind: "advertiser" | "partner", id: string, ok: boolean) => void;
   setMemberStatus: (kind: "advertiser" | "partner", id: string, status: MemberStatus) => void;
@@ -257,6 +258,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setReceiving: (advertiserId, on) => act({ type: "setReceiving", advertiserId, on }),
       requestDeposit: (advertiserId, amount, depositor) => act({ type: "requestDeposit", advertiserId, amount, depositor }),
       updateAssignment: (id, patch) => run({ type: "updateAssignment", id, patch }),
+      addMemo: (id, text) => run({ type: "addMemo", id, text }),
       reportDefect: (assignmentId, reason, fileName) => act({ type: "reportDefect", assignmentId, reason, fileName }),
       approveMember: (kind, id, ok) => run({ type: "approveMember", kind, id, ok }),
       setMemberStatus: (kind, id, status) => run({ type: "setMemberStatus", kind, id, status }),

@@ -3,6 +3,7 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { timeAgo } from "@/lib/format";
+import { latestMemo } from "@/lib/memo";
 import { useStore } from "@/lib/store";
 import type { Assignment, ConsultStatus, Lead } from "@/lib/types";
 import { Badge } from "./ui";
@@ -48,6 +49,7 @@ export function LeadRow({ a }: { a: Assignment }) {
           <span className="tabular text-sm text-sub">{lead.phone}</span>
         </div>
         <p className="mt-0.5 truncate text-[13px] text-sub">{carLine(lead)}</p>
+        {latestMemo(a) && <p className="mt-0.5 truncate text-[13px] text-mute">메모 · {latestMemo(a)}</p>}
         <div className="mt-1.5 flex flex-wrap items-center gap-2">
           <Badge tone={consultTone[a.consult]}>{a.consult}</Badge>
           <DefectBadge a={a} />

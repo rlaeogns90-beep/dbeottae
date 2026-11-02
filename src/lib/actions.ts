@@ -9,6 +9,7 @@ export type Action =
   | { type: "setReceiving"; advertiserId: string; on: boolean }
   | { type: "requestDeposit"; advertiserId: string; amount: number; depositor: string }
   | { type: "updateAssignment"; id: string; patch: Partial<Pick<Assignment, "consult" | "memo">> }
+  | { type: "addMemo"; id: string; text: string }
   | { type: "reportDefect"; assignmentId: string; reason: DefectReason; fileName?: string }
   // 관리자
   | { type: "approveMember"; kind: "advertiser" | "partner"; id: string; ok: boolean }
@@ -35,10 +36,12 @@ export type Action =
 
 export type ActionResult = { state: State } | { error: string };
 
-const ADVERTISER_ACTIONS = new Set<Action["type"]>(["setReceiving", "requestDeposit", "updateAssignment", "reportDefect"]);
+const ADVERTISER_ACTIONS = new Set<Action["type"]>(["setReceiving", "requestDeposit", "updateAssignment", "addMemo", "reportDefect"]);
 const MASTER_ACTIONS = new Set<Action["type"]>(["createAdmin", "deleteAdmin"]);
 
 export const MIN_PASSWORD = 4;
+/** 배정 건마다 남기는 상담 메모 기록 수 */
+export const MAX_MEMOS = 200;
 
 const CONSULT_VALUES = ["대기", "견적발송", "계약", "관리", "계약취소"];
 export const LOGIN_ID = /^[a-zA-Z0-9_]{4,20}$/;
@@ -55,6 +58,8 @@ function invalid(a: Action): string | null {
     case "updateAssignment":
       if (a.patch.consult !== undefined && !CONSULT_VALUES.includes(a.patch.consult)) return "잘못된 상담 상태입니다.";
       return a.patch.memo === undefined || str(a.patch.memo, 2000) ? null : "메모는 2,000자까지 쓸 수 있습니다.";
+    case "addMemo":
+      return str(a.text, 2000) && a.text.trim() ? null : "메모는 1~2,000자로 써 주세요.";
     case "reportDefect":
       return a.reason === "결번" && (a.fileName === undefined || str(a.fileName, 200)) ? null : "잘못된 요청입니다.";
     case "setReceiptStatus":
@@ -105,7 +110,7 @@ function denied(s: State, who: Session, a: Action): string | null {
     if (!ADVERTISER_ACTIONS.has(a.type)) return "권한이 없습니다.";
     const mine = (assignmentId: string) => s.assignments.find((x) => x.id === assignmentId)?.advertiserId === who.id;
     if ((a.type === "setReceiving" || a.type === "requestDeposit") && a.advertiserId !== who.id) return "권한이 없습니다.";
-    if (a.type === "updateAssignment" && !mine(a.id)) return "권한이 없습니다.";
+    if ((a.type === "updateAssignment" || a.type === "addMemo") && !mine(a.id)) return "권한이 없습니다.";
     if (a.type === "reportDefect" && !mine(a.assignmentId)) return "권한이 없습니다.";
     return null;
   }
@@ -153,6 +158,15 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
       if (a.patch.consult !== undefined) patch.consult = a.patch.consult;
       if (a.patch.memo !== undefined) patch.memo = String(a.patch.memo).slice(0, 2000);
       return ok({ ...s, assignments: s.assignments.map((x) => (x.id === a.id ? { ...x, ...patch } : x)) });
+    }
+    case "addMemo": {
+      const text = a.text.trim();
+      return ok({
+        ...s,
+        assignments: s.assignments.map((x) =>
+          x.id === a.id ? { ...x, memo: text, memos: [{ at, text }, ...(x.memos ?? [])].slice(0, MAX_MEMOS) } : x,
+        ),
+      });
     }
     case "reportDefect": {
       const asg = s.assignments.find((x) => x.id === a.assignmentId);

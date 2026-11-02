@@ -8,14 +8,15 @@ import { carLine, CONSULTS, consultTone, useDefectState } from "@/components/lea
 import { useAdvertiser } from "@/components/shells";
 import { Badge, Button, Card, cx, Empty, Field, Modal, Notice, Textarea } from "@/components/ui";
 import { dateTime, won } from "@/lib/format";
+import { memoLog } from "@/lib/memo";
 import { useStore } from "@/lib/store";
 
 export default function LeadDetail() {
   const { id } = useParams<{ id: string }>();
   const adv = useAdvertiser()!;
-  const { state, updateAssignment, reportDefect } = useStore();
+  const { state, updateAssignment, addMemo, reportDefect } = useStore();
   const a = state.assignments.find((x) => x.id === id && x.advertiserId === adv.id);
-  const [memo, setMemo] = useState(a?.memo ?? "");
+  const [memo, setMemo] = useState("");
   const [open, setOpen] = useState(false);
   const [fileName, setFileName] = useState("");
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -80,22 +81,37 @@ export default function LeadDetail() {
         </div>
         <div className="mt-4">
           <Field label="상담 메모">
-            <Textarea id="consult-memo" rows={4} value={memo} onChange={(e) => { setMemo(e.target.value); setSavedAt(null); }} placeholder="통화 내용, 다음 연락 시간 등" />
+            <Textarea id="consult-memo" rows={3} maxLength={2000} value={memo} onChange={(e) => { setMemo(e.target.value); setSavedAt(null); }} placeholder="통화 내용, 다음 연락 시간 등" />
           </Field>
           <div className="mt-2 flex items-center justify-end gap-3">
             {savedAt && <span className="text-[13px] text-brand">{savedAt} 저장됨</span>}
-            {!savedAt && memo !== a.memo && <span className="text-[13px] text-mute">저장하지 않은 변경 내용이 있습니다</span>}
+            {!savedAt && memo.trim() && <span className="text-[13px] text-mute">저장하지 않은 메모가 있습니다</span>}
             <Button
               size="sm"
-              disabled={memo === a.memo}
+              disabled={!memo.trim()}
               onClick={() => {
-                updateAssignment(a.id, { memo });
+                addMemo(a.id, memo);
+                setMemo("");
                 setSavedAt(dateTime(new Date().toISOString()).split(" ")[1]);
               }}
             >
               메모 저장
             </Button>
           </div>
+          {/* 저장한 메모는 아래에 최신순으로 쌓인다 */}
+          {memoLog(a).length > 0 && (
+            <div className="mt-4 border-t border-line pt-4">
+              <p className="mb-2 text-[13px] font-semibold text-sub">메모 기록 {memoLog(a).length}</p>
+              <ul className="space-y-2">
+                {memoLog(a).map((m, i) => (
+                  <li key={`${m.at ?? "old"}-${i}`} className="rounded-lg bg-page px-3.5 py-2.5">
+                    <p className="tabular text-xs text-mute">{m.at ? dateTime(m.at) : "이전 메모"}</p>
+                    <p className="mt-0.5 text-sm leading-relaxed break-words whitespace-pre-wrap">{m.text}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </Card>
 
