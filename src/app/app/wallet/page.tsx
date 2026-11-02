@@ -46,8 +46,9 @@ export default function WalletPage() {
   return (
     <div>
       <PageHeader title="예치금" desc={`DB 1건당 ${won(price)}(VAT 포함)이 차감됩니다`} />
+      {/* 칸마다 min-w-0: 내역 메모(한 줄 자르기)가 칸을 늘려 휴대폰에서 화면이 가로로 넘치지 않게 */}
       <div className="grid gap-4 md:grid-cols-[1fr_1.2fr]">
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <Card className="p-5">
             <p className="text-[13px] text-sub">현재 예치금</p>
             <p className="tabular mt-1 text-[28px] font-bold">{won(balance)}</p>
@@ -94,7 +95,7 @@ export default function WalletPage() {
           </Card>
         </div>
 
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           {requests.some((r) => r.status === "pending") && (
             <Notice tone="blue">
               입금 확인 중인 신청이 있습니다:{" "}

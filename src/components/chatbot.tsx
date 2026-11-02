@@ -77,7 +77,7 @@ export function Chatbot({ mode }: { mode: Mode }) {
   const [rows, setRows] = useState<Inquiry[]>([]);
   // 이 화면에서 이미 보여준 답변(문의 id → 답변 시각). 서버 읽음 기록이 반영되기 전에 목록을 다시 받아도 점이 다시 뜨지 않게 한다.
   const [shown, setShown] = useState<Record<number, string>>({});
-  const end = useRef<HTMLDivElement>(null);
+  const list = useRef<HTMLDivElement>(null);
   const advertiser = mode === "advertiser";
 
   // api는 상태를 새로 받을 때마다(4초) 바뀐다. 그대로 의존하면 문의 목록도 4초마다 다시 받으므로 ref로 붙잡아 둔다.
@@ -100,10 +100,20 @@ export function Chatbot({ mode }: { mode: Mode }) {
     return () => clearInterval(t);
   }, [advertiser, load]);
 
-  // 중괄호 필수: 최신 브라우저의 scrollIntoView는 Promise를 돌려줘서, 그대로 반환하면 React가 정리 함수로 보고 화면이 깨진다.
+  // 새 말풍선이 생기면 그중 첫 번째(보통 방금 한 질문)부터 보이게 한다. 맨 아래로만 내리면 작은 화면에서 긴 답의 앞부분이 가려진다.
+  // 창을 처음 열 때는 맨 아래(최근 대화)로.
+  const shownLen = useRef(0);
   useEffect(() => {
-    end.current?.scrollIntoView({ block: "end" });
-  }, [msgs, open, draft]);
+    const box = list.current;
+    if (!box) return;
+    const first = box.querySelector<HTMLElement>(`[data-i="${shownLen.current}"]`);
+    shownLen.current = msgs.length;
+    box.scrollTop = first ? first.offsetTop - 12 : box.scrollHeight;
+  }, [msgs, open]);
+  // 문의 칸이 열리고 닫힐 때는 맨 아래로
+  useEffect(() => {
+    if (list.current) list.current.scrollTop = list.current.scrollHeight;
+  }, [draft]);
 
   const unreadOf = (list: Inquiry[]) => list.filter((p) => isUnread(p) && shown[p.id] !== p.replyAt);
   const unread = unreadOf(rows);
@@ -197,9 +207,9 @@ export function Chatbot({ mode }: { mode: Mode }) {
             </div>
           </div>
 
-          <div className="flex-1 space-y-2.5 overflow-y-auto px-4 py-3">
+          <div ref={list} className="relative flex-1 space-y-2.5 overflow-y-auto px-4 py-3">
             {msgs.map((m, i) => (
-              <div key={i} className={m.from === "me" ? "flex justify-end" : "flex items-start justify-start gap-2"}>
+              <div key={i} data-i={i} className={m.from === "me" ? "flex justify-end" : "flex items-start justify-start gap-2"}>
                 {m.from === "me" ? (
                   <div className="max-w-[80%] rounded-[20px] bg-logo-navy px-4 py-2.5 text-sm text-white shadow-[0_2px_10px_rgba(10,31,68,0.18)]">{m.text}</div>
                 ) : (
@@ -242,7 +252,6 @@ export function Chatbot({ mode }: { mode: Mode }) {
                 </button>
               ))}
             </div>
-            <div ref={end} />
           </div>
 
           {draft !== null ? (
