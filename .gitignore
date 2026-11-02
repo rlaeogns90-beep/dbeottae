@@ -53,3 +53,7 @@ next-env.d.ts
 # Vercel CLI가 설치한 에이전트 스킬
 /.agents
 skills-lock.json
+
+# 테스트 묶음과 작업 기록
+/.test/
+/.superpowers/

@@ -5,6 +5,7 @@ import { Bike, Car, CarFront, Phone, Plus, RotateCcw, ShieldCheck, Ship, Umbrell
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Chatbot } from "@/components/chatbot";
 import { CallButton, COMPANY, KakaoButton, KakaoIcon, SiteFooter } from "@/components/contact";
 import { IndustryRoller } from "@/components/industry-roller";
 import { LiveFeed } from "@/components/live-feed";
@@ -392,6 +393,7 @@ export function MainPage() {
       </section>
 
       <SiteFooter />
+      <Chatbot mode="main" />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 // 고객센터 게시판. 광고주는 문의를 쓰고 본인 글과 답변만 보며,
 // 관리자만 모든 글을 보고 답변·삭제한다. 광고주끼리는 서로의 글을 볼 수 없다.
+// 광고주가 답변을 읽으면 seen_at을 남겨 챗봇 빨간 점을 끈다.
 import { crossSite, findUser, readToken, stillValid } from "@/lib/server/auth";
 import { ensureTable, loadState, sql } from "@/lib/server/db";
 import { alert, audit, clientIp, guarded, overLimit, tooMany } from "@/lib/server/ops";
@@ -9,9 +10,9 @@ export const dynamic = "force-dynamic";
 
 interface Row {
   id: number; at: string; kind: string; advertiser_id: string | null; title: string; body: string;
-  reply: string | null; reply_at: string | null;
+  reply: string | null; reply_at: string | null; seen_at: string | null;
 }
-const out = (r: Row) => ({ id: r.id, at: r.at, kind: r.kind, title: r.title, body: r.body, reply: r.reply, replyAt: r.reply_at });
+const out = (r: Row) => ({ id: r.id, at: r.at, kind: r.kind, title: r.title, body: r.body, reply: r.reply, replyAt: r.reply_at, seenAt: r.seen_at });
 
 async function who(req: Request) {
   const t = readToken(req);
@@ -25,7 +26,7 @@ export const GET = guarded("고객센터", async (req) => {
   if (!me) return Response.json({ error: "다시 로그인해 주세요." }, { status: 401 });
   await ensureTable();
   if (me.who.role === "admin") {
-    const rows = (await sql`select id::int as id, at, kind, advertiser_id, title, body, reply, reply_at from support_posts where kind = 'inquiry' order by id desc limit 300`) as Row[];
+    const rows = (await sql`select id::int as id, at, kind, advertiser_id, title, body, reply, reply_at, seen_at from support_posts where kind = 'inquiry' order by id desc limit 300`) as Row[];
     const names = new Map(me.data.advertisers.map((a) => [a.id, a]));
     return Response.json({
       rows: rows.map((r) => {
@@ -35,14 +36,15 @@ export const GET = guarded("고객센터", async (req) => {
     });
   }
   if (me.who.role !== "advertiser") return Response.json({ error: "권한이 없습니다." }, { status: 403 });
-  const rows = (await sql`select id::int as id, at, kind, advertiser_id, title, body, reply, reply_at from support_posts where advertiser_id = ${me.who.id} and kind = 'inquiry' order by id desc limit 100`) as Row[];
+  const rows = (await sql`select id::int as id, at, kind, advertiser_id, title, body, reply, reply_at, seen_at from support_posts where advertiser_id = ${me.who.id} and kind = 'inquiry' order by id desc limit 100`) as Row[];
   return Response.json({ rows: rows.map(out) });
 });
 
 type Body =
   | { op: "write"; kind: "inquiry"; title: string; body: string }
   | { op: "reply"; id: number; reply: string }
-  | { op: "delete"; id: number };
+  | { op: "delete"; id: number }
+  | { op: "seen" };
 
 export const POST = guarded("고객센터", async (req) => {
   if (crossSite(req)) return Response.json({ error: "잘못된 요청입니다." }, { status: 403 });
@@ -65,6 +67,12 @@ export const POST = guarded("고객센터", async (req) => {
       await alert("info", "고객센터", `${name} 광고주의 새 문의가 등록됐습니다: ${title.slice(0, 40)}`);
       await notifyTask(me.data, "support", `${name} 광고주 문의: ${title}`).catch(() => {});
     } else return Response.json({ error: "잘못된 요청입니다." }, { status: 400 });
+    return Response.json({ ok: true });
+  }
+
+  if (b.op === "seen") {
+    if (me.who.role !== "advertiser") return Response.json({ error: "권한이 없습니다." }, { status: 403 });
+    await sql`update support_posts set seen_at = now() where advertiser_id = ${me.who.id} and kind = 'inquiry' and reply is not null`;
     return Response.json({ ok: true });
   }
 

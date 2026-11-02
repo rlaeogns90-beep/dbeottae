@@ -1,16 +1,17 @@
 "use client";
 
 import {
-  Bell, ClipboardCheck, Headset, FileWarning, Home, Inbox, KeyRound, Layers, LogOut, Plug, ScrollText, Settings, ShieldCheck,
-  User, Users, Wallet, Briefcase, Clock3, Radio,
+  Bell, ClipboardCheck, FileWarning, Home, Inbox, KeyRound, Layers, LogOut, Plug, ScrollText, Settings, ShieldCheck,
+  User, Users, Wallet, Briefcase, Clock3, Radio, MessageCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { balanceOf } from "@/lib/engine";
 import { won } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import type { Admin, Advertiser, Partner, Session } from "@/lib/types";
+import { Chatbot } from "./chatbot";
 import { cx, Logo } from "./ui";
 
 function useGuard(role: Session["role"]) {
@@ -104,7 +105,6 @@ export function AdvertiserShell({ children }: { children: React.ReactNode }) {
     { href: "/app/leads", label: "DB 관리", icon: Inbox },
     { href: "/app/wallet", label: "예치금", icon: Wallet },
     { href: "/app/defects", label: "불량 처리", icon: FileWarning },
-    { href: "/app/support", label: "고객센터", icon: Headset },
     { href: "/app/me", label: "내 정보", icon: User },
   ];
   return (
@@ -127,6 +127,7 @@ export function AdvertiserShell({ children }: { children: React.ReactNode }) {
       </header>
       <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
       <BottomNav items={items} root="/app" />
+      <Chatbot mode="advertiser" />
     </div>
   );
 }
@@ -161,8 +162,20 @@ export function PartnerShell({ children }: { children: React.ReactNode }) {
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const admin = useAdmin();
-  const { state, alerts } = useStore();
+  const { state, alerts, api } = useStore();
   const path = usePathname();
+  // 챗봇 문의는 상태(state)가 아니라 별도 표에 있어서 화면을 옮길 때마다 답변 대기 건수를 다시 센다.
+  const [pendingSupport, setPendingSupport] = useState(0);
+  // api는 상태를 새로 받을 때마다(4초) 바뀌므로 ref로 붙잡아, 화면을 옮길 때만 다시 센다.
+  const apiRef = useRef(api);
+  useEffect(() => {
+    apiRef.current = api;
+  }, [api]);
+  const isAdmin = !!admin;
+  useEffect(() => {
+    if (!isAdmin) return;
+    apiRef.current<{ rows?: { reply: string | null }[] }>("/api/support").then((r) => setPendingSupport(r.ok ? (r.data.rows ?? []).filter((p) => !p.reply).length : 0));
+  }, [isAdmin, path]);
   if (!admin) return null;
 
   const waiting = state.leads.filter((l) => l.status === "waiting").length;
@@ -185,7 +198,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         { href: "/admin/members", label: "가입 승인", icon: ClipboardCheck, count: pendingMembers },
         { href: "/admin/deposits", label: "입금 확인", icon: Wallet, count: pendingDeposits },
         { href: "/admin/defects", label: "불량 처리 승인", icon: FileWarning, count: pendingDefects },
-        { href: "/admin/support", label: "고객센터", icon: Headset },
+        { href: "/admin/support", label: "챗봇 문의", icon: MessageCircle, count: pendingSupport },
       ],
     },
     {
