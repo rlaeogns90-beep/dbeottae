@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "esbuild src/lib/*.test.ts --bundle --platform=node --format=esm --outdir=.test --out-extension:.js=.mjs && node --test \".test/*.test.mjs\""
+    "test": "esbuild src/lib/*.test.ts src/lib/server/*.test.ts --bundle --platform=node --format=esm --alias:server-only=node:os --outdir=.test --out-extension:.js=.mjs && node --test \".test/**/*.test.mjs\""
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",

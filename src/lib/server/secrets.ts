@@ -61,7 +61,7 @@ function forRole(s: State, who: Session | null): State {
     .filter((a) => a.referrer === me.code)
     .map((a) => ({ ...a, password: "", tax: undefined, cash: undefined }));
   const advIds = new Set(advertisers.map((a) => a.id));
-  const assignments = s.assignments.filter((a) => advIds.has(a.advertiserId)).map((a) => ({ ...a, memo: "" }));
+  const assignments = s.assignments.filter((a) => advIds.has(a.advertiserId)).map((a) => ({ ...a, memo: "", memos: undefined })); // 상담 메모는 광고주 본인만
   const leadIds = new Set(assignments.map((a) => a.leadId));
   const asgIds = new Set(assignments.map((a) => a.id));
   return {
