@@ -2,9 +2,9 @@
 
 // 메인·광고주 화면 오른쪽 아래 상담 챗봇. 외부 AI 없이 chatbot-kb의 정해 둔 답만 보여준다.
 // 광고주는 못 푼 질문을 관리자 문의로 남기고 답을 이 창에서 본다. 메인 화면은 서버로 아무것도 보내지 않는다.
-import { MessageCircle, Send, X } from "lucide-react";
+import { ArrowUp, X } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { CallButton, KakaoButton } from "@/components/contact";
 import { Textarea } from "@/components/ui";
 import { answer, MISS, quickTopics, REFUSAL, type Mode, type Topic } from "@/lib/chatbot-kb";
@@ -40,6 +40,32 @@ const place: Record<Mode, { button: string; panel: string }> = {
 };
 
 const qa = (p: Inquiry) => `문의: ${p.body}\n답변: ${p.reply ?? "답변 대기 중"}`;
+
+/** 상담봇 얼굴: 하얀 구슬 몸에 어두운 화면과 두 눈. 화면 테두리는 브랜드 파랑을 중심으로 한 빛. */
+function BotFace({ size }: { size: number }) {
+  const id = useId();
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true" className="shrink-0 drop-shadow-[0_4px_10px_rgba(16,42,90,0.18)]">
+      <defs>
+        <radialGradient id={`${id}s`} cx="38%" cy="30%" r="75%">
+          <stop offset="0%" stopColor="#ffffff" />
+          <stop offset="100%" stopColor="#dbe3ec" />
+        </radialGradient>
+        <linearGradient id={`${id}r`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#38d6f5" />
+          <stop offset="55%" stopColor="#2659d9" />
+          <stop offset="100%" stopColor="#8b5cf6" />
+        </linearGradient>
+      </defs>
+      <circle cx="32" cy="32" r="30" fill={`url(#${id}s)`} />
+      <rect x="10" y="19" width="44" height="27" rx="13.5" fill="#0d1530" stroke={`url(#${id}r)`} strokeWidth="2.6" />
+      <ellipse cx="25" cy="32.5" rx="3.6" ry="5" fill="#fff" />
+      <ellipse cx="39" cy="32.5" rx="3.6" ry="5" fill="#fff" />
+    </svg>
+  );
+}
+
+const pill = "inline-flex h-9 items-center rounded-full px-3.5 text-[13px] font-semibold";
 
 export function Chatbot({ mode }: { mode: Mode }) {
   const { api } = useStore();
@@ -149,65 +175,68 @@ export function Chatbot({ mode }: { mode: Mode }) {
         <div
           role="dialog"
           aria-label="DB어때 상담 챗봇"
-          className={`fixed z-40 flex flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-[0_12px_40px_rgba(0,0,0,0.16)] sm:w-[370px] ${place[mode].panel}`}
+          className={`fixed z-40 flex flex-col overflow-hidden rounded-[28px] border border-white/70 bg-[linear-gradient(180deg,#d6e2ee_0%,#e8eef5_45%,#f5f7fa_100%)] shadow-[0_20px_50px_rgba(16,42,90,0.22)] sm:w-[380px] ${place[mode].panel}`}
         >
-          <div className="flex items-center justify-between bg-brand px-4 py-3 text-white">
-            <div>
-              <p className="text-[15px] font-bold">DB어때 상담봇</p>
-              <p className="text-xs text-white/80">{advertiser ? "이용 방법 안내 · 관리자 문의" : "자주 묻는 질문에 바로 답해 드려요"}</p>
+          <div className="flex items-center justify-between px-4 pt-4 pb-2">
+            <div className="flex items-center gap-2.5">
+              <BotFace size={40} />
+              <div>
+                <p className="text-[15px] font-bold text-logo-navy">DB어때 상담봇</p>
+                <p className="text-xs text-sub">{advertiser ? "이용 방법 안내 · 관리자 문의" : "자주 묻는 질문에 바로 답해 드려요"}</p>
+              </div>
             </div>
             <div className="flex items-center gap-1">
               {advertiser && (
-                <button type="button" onClick={showMine} className="rounded-lg px-2 py-1 text-xs font-semibold hover:bg-white/15">
+                <button type="button" onClick={showMine} className="rounded-full bg-white/70 px-3 py-1.5 text-xs font-semibold text-logo-navy hover:bg-white">
                   내 문의 보기
                 </button>
               )}
-              <button type="button" onClick={() => setOpen(false)} aria-label="챗봇 닫기" className="-mr-1 rounded-lg p-1.5 hover:bg-white/15">
+              <button type="button" onClick={() => setOpen(false)} aria-label="챗봇 닫기" className="rounded-full p-1.5 text-sub hover:bg-white/70">
                 <X size={20} />
               </button>
             </div>
           </div>
 
-          <div className="flex-1 space-y-3 overflow-y-auto bg-page px-3 py-4">
+          <div className="flex-1 space-y-2.5 overflow-y-auto px-4 py-3">
             {msgs.map((m, i) => (
-              <div key={i} className={m.from === "me" ? "flex justify-end" : "flex justify-start"}>
+              <div key={i} className={m.from === "me" ? "flex justify-end" : "flex items-start justify-start gap-2"}>
                 {m.from === "me" ? (
-                  <div className="max-w-[80%] rounded-2xl rounded-br-md bg-brand px-3.5 py-2.5 text-sm text-white">{m.text}</div>
+                  <div className="max-w-[80%] rounded-[20px] bg-logo-navy px-4 py-2.5 text-sm text-white shadow-[0_2px_10px_rgba(10,31,68,0.18)]">{m.text}</div>
                 ) : (
-                  <div className="max-w-[88%] rounded-2xl rounded-bl-md border border-line bg-white px-3.5 py-2.5 text-sm leading-relaxed text-ink">
-                    {m.title && <p className="mb-1 font-bold">{m.title}</p>}
-                    <p className="whitespace-pre-wrap">{m.text}</p>
-                    {m.topic?.links?.map(([href, label]) => (
-                      <Link key={href} href={href} onClick={() => setOpen(false)} className="mt-2.5 mr-2 inline-flex h-9 items-center rounded-lg bg-brand px-3 text-[13px] font-bold text-white hover:bg-brand-dark">
-                        {label}
-                      </Link>
-                    ))}
-                    {(m.contact || (m.handoff && !advertiser)) && (
-                      <div className="mt-2.5 flex flex-wrap gap-2">
-                        <CallButton solid className="h-9 text-[13px]" />
-                        <KakaoButton className="h-9 text-[13px]" />
-                      </div>
-                    )}
-                    {m.handoff && advertiser && (
-                      <button
-                        type="button"
-                        onClick={() => setDraft(m.handoff!.ask)}
-                        className="mt-2.5 inline-flex h-9 items-center rounded-lg bg-brand px-3 text-[13px] font-bold text-white hover:bg-brand-dark"
-                      >
-                        관리자에게 문의 남기기
-                      </button>
-                    )}
-                  </div>
+                  <>
+                    {/* 연달아 오는 봇 말풍선은 첫 번째에만 얼굴을 붙인다 */}
+                    {msgs[i - 1]?.from === "bot" ? <span className="w-7 shrink-0" /> : <BotFace size={28} />}
+                    <div className="max-w-[85%] rounded-[20px] bg-white px-4 py-2.5 text-sm leading-relaxed text-ink shadow-[0_2px_10px_rgba(16,42,90,0.08)]">
+                      {m.title && <p className="mb-1 font-bold">{m.title}</p>}
+                      <p className="whitespace-pre-wrap">{m.text}</p>
+                      {m.topic?.links?.map(([href, label]) => (
+                        <Link key={href} href={href} onClick={() => setOpen(false)} className={`${pill} mt-2.5 mr-2 bg-brand text-white hover:bg-brand-dark`}>
+                          {label}
+                        </Link>
+                      ))}
+                      {(m.contact || (m.handoff && !advertiser)) && (
+                        <div className="mt-2.5 flex flex-wrap gap-2">
+                          <CallButton solid className="h-9 rounded-full! text-[13px]" />
+                          <KakaoButton className="h-9 rounded-full! text-[13px]" />
+                        </div>
+                      )}
+                      {m.handoff && advertiser && (
+                        <button type="button" onClick={() => setDraft(m.handoff!.ask)} className={`${pill} mt-2.5 border border-logo-navy text-logo-navy hover:bg-brand-soft`}>
+                          관리자에게 문의 남기기
+                        </button>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             ))}
-            <div className="flex flex-wrap gap-1.5 pt-1">
+            <div className="flex flex-wrap justify-end gap-1.5 pt-1">
               {quickTopics(mode).map((tp) => (
                 <button
                   key={tp.id}
                   type="button"
                   onClick={() => ask(tp.q, tp)}
-                  className="rounded-full border border-brand/30 bg-white px-3 py-1.5 text-[13px] font-semibold text-brand hover:bg-brand-soft"
+                  className="rounded-full border border-brand/50 bg-white/60 px-3.5 py-1.5 text-[13px] font-medium text-brand hover:bg-white"
                 >
                   {tp.q}
                 </button>
@@ -217,36 +246,37 @@ export function Chatbot({ mode }: { mode: Mode }) {
           </div>
 
           {draft !== null ? (
-            <div className="space-y-2 border-t border-line bg-white p-2.5">
+            <div className="m-3 mt-1 space-y-2 rounded-[20px] bg-white p-3 shadow-[0_2px_10px_rgba(16,42,90,0.1)]">
               <p className="text-[13px] font-semibold text-sub">관리자에게 보낼 문의</p>
               <Textarea rows={3} maxLength={1000} value={draft} placeholder="문의 내용을 적어 주세요" aria-label="문의 내용" onChange={(e) => setDraft(e.target.value)} />
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={() => setDraft(null)} className="h-9 rounded-lg px-3 text-[13px] font-semibold text-sub hover:bg-soft">
+                <button type="button" onClick={() => setDraft(null)} className={`${pill} text-sub hover:bg-soft`}>
                   취소
                 </button>
-                <button
-                  type="button"
-                  onClick={send}
-                  disabled={busy || !draft.trim()}
-                  className="h-9 rounded-lg bg-brand px-4 text-[13px] font-bold text-white hover:bg-brand-dark disabled:opacity-50"
-                >
+                <button type="button" onClick={send} disabled={busy || !draft.trim()} className={`${pill} bg-brand px-5 text-white hover:bg-brand-dark disabled:opacity-50`}>
                   {busy ? "보내는 중…" : "보내기"}
                 </button>
               </div>
             </div>
           ) : (
-            <form onSubmit={submit} className="flex gap-2 border-t border-line bg-white p-2.5">
-              <input
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="궁금한 점을 입력하세요"
-                maxLength={200}
-                aria-label="질문 입력"
-                className="h-10 min-w-0 flex-1 rounded-lg border border-line px-3 text-base outline-none focus:border-brand sm:text-sm"
-              />
-              <button type="submit" aria-label="보내기" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand text-white hover:bg-brand-dark">
-                <Send size={17} />
-              </button>
+            <form onSubmit={submit} className="px-3 pt-1 pb-3">
+              <div className="relative">
+                <input
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="궁금한 점을 입력하세요"
+                  maxLength={200}
+                  aria-label="질문 입력"
+                  className="h-12 w-full rounded-full border border-white bg-white pr-12 pl-5 text-base shadow-[0_2px_10px_rgba(16,42,90,0.1)] outline-none focus:border-brand/40 sm:text-sm"
+                />
+                <button
+                  type="submit"
+                  aria-label="보내기"
+                  className={`absolute top-1/2 right-2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full ${text.trim() ? "bg-brand text-white" : "bg-soft text-mute"}`}
+                >
+                  <ArrowUp size={17} />
+                </button>
+              </div>
             </form>
           )}
         </div>
@@ -257,9 +287,15 @@ export function Chatbot({ mode }: { mode: Mode }) {
         onClick={toggle}
         aria-label={open ? "챗봇 닫기" : unread.length ? "챗봇 열기, 새 답변 있음" : "챗봇 열기"}
         aria-expanded={open}
-        className={`fixed z-40 inline-flex h-14 items-center gap-2 rounded-full bg-brand pr-5 pl-4 text-[15px] font-bold text-white shadow-[0_8px_24px_rgba(38,89,217,0.4)] hover:bg-brand-dark ${place[mode].button}`}
+        className={`fixed z-40 inline-flex h-14 items-center gap-2 rounded-full border border-white bg-white pr-5 pl-2 text-[15px] font-bold text-logo-navy shadow-[0_8px_24px_rgba(16,42,90,0.22)] hover:bg-brand-soft ${place[mode].button}`}
       >
-        {open ? <X size={22} /> : <MessageCircle size={22} />}
+        {open ? (
+          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-soft text-sub">
+            <X size={20} />
+          </span>
+        ) : (
+          <BotFace size={40} />
+        )}
         {open ? "닫기" : "궁금한 점 물어보기"}
         {!open && unread.length > 0 && <span className="absolute -top-0.5 -right-0.5 h-3.5 w-3.5 rounded-full bg-bad ring-2 ring-white" />}
       </button>
