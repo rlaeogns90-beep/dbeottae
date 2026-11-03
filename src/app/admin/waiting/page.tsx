@@ -1,8 +1,9 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { carLine } from "@/components/lead-parts";
-import { Badge, Button, Card, Empty, Notice, PageHeader, Select } from "@/components/ui";
+import { Badge, Button, Card, Empty, Modal, Notice, PageHeader, Select } from "@/components/ui";
 import { laneOf } from "@/lib/content";
 import { balanceOf, checkAdvertiser, todayCount, type Ineligible } from "@/lib/engine";
 import { dateTime, timeAgo, won } from "@/lib/format";
@@ -20,10 +21,12 @@ const why: Record<Ineligible, string> = {
 };
 
 function WaitingCard({ lead }: { lead: Lead }) {
-  const { state, now, assignWaiting, assignWaitingToGroup } = useStore();
+  const { state, now, assignWaiting, assignWaitingToGroup, deleteLead } = useStore();
   const [advId, setAdvId] = useState("");
   const [groupId, setGroupId] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [confirmDel, setConfirmDel] = useState(false);
+  const [delError, setDelError] = useState("");
   const approved = state.advertisers.filter((a) => a.status === "approved");
 
   return (
@@ -38,7 +41,17 @@ function WaitingCard({ lead }: { lead: Lead }) {
           </div>
           <p className="mt-1 text-[13px] text-sub">{carLine(lead)} · {[lead.pageName, lead.site].filter(Boolean).join(" · ")}{lead.term ? ` · ${lead.term}` : ""}</p>
         </div>
-        <p className="text-xs text-mute">{dateTime(lead.createdAt)} · {timeAgo(lead.createdAt, now)}</p>
+        <div className="flex items-center gap-1">
+          <p className="text-xs text-mute">{dateTime(lead.createdAt)} · {timeAgo(lead.createdAt, now)}</p>
+          <button
+            type="button"
+            aria-label={`${lead.name} DB 삭제`}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-mute hover:bg-bg hover:text-bad"
+            onClick={() => { setDelError(""); setConfirmDel(true); }}
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
       </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -82,6 +95,33 @@ function WaitingCard({ lead }: { lead: Lead }) {
         </div>
       </div>
       {error && <p className="mt-2 text-[13px] text-bad">{error}</p>}
+
+      <Modal
+        open={confirmDel}
+        title="대기 DB 삭제"
+        onClose={() => setConfirmDel(false)}
+        footer={
+          <>
+            <Button variant="secondary" className="flex-1" onClick={() => setConfirmDel(false)}>취소</Button>
+            <Button
+              className="flex-1"
+              onClick={() => {
+                const err = deleteLead(lead.id);
+                if (err) setDelError(err);
+                else setConfirmDel(false);
+              }}
+            >
+              삭제하기
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3 text-sm">
+          <p><b>{lead.name}</b> · {lead.phone} · {lead.car || "-"}</p>
+          <Notice>삭제하면 대기 목록과 DB 현황에서 사라지고 되돌릴 수 없습니다. 구글 시트에 쌓인 기록은 지워지지 않으니 시트에서 직접 지워 주세요.</Notice>
+          {delError && <p className="text-[13px] text-bad">{delError}</p>}
+        </div>
+      </Modal>
     </Card>
   );
 }

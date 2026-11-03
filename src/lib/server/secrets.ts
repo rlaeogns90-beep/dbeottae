@@ -13,6 +13,7 @@ const publicSettings = (s: Settings): Settings => ({
   solapi: { channel: "", pfId: "", sender: "", templateInquiry: "", templateStats: "", statsPhone: "", enabled: false, statsEnabled: false },
   connections: [],
   lastGroupId: undefined,
+  testPhones: undefined,
 });
 
 const empty = { advertisers: [], partners: [], admins: [], assignments: [], wallet: [], deposits: [], defects: [], groups: [] };

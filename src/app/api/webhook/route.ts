@@ -1,8 +1,8 @@
 // 외부 웹훅 접수 (메타 잠재고객 → 제피어 → 디비어때).
 // 주소: /api/webhook?key=연결키  ·  JSON 또는 폼 형식 모두 받는다.
-// 키 하나당 1분에 60건까지, 같은 연락처가 10분 안에 다시 들어오면 중복으로 보고 받지 않는다.
+// 키 하나당 1분에 60건까지, 같은 연락처가 10분 안에 다시 들어오면 중복으로 보고 받지 않는다(테스트 번호는 매번 받는다).
 // 실패하면 관리자 화면에 알림을 남긴다.
-import { noticeAfterAssign, routeLead, uid } from "@/lib/engine";
+import { isTestPhone, noticeAfterAssign, routeLead, uid } from "@/lib/engine";
 import { mutate } from "@/lib/server/db";
 import { alert, clientIp, guarded, overLimit } from "@/lib/server/ops";
 import { loadState } from "@/lib/server/db";
@@ -59,7 +59,7 @@ export const POST = guarded("웹훅", async (req) => {
     const conn = s.settings.connections.find((c) => c.key === key && c.type === "landing");
     if (!key || !conn) return { state: s, result: { status: 401, error: "연결 키가 맞지 않습니다." } };
     if (!conn.active) return { state: s, result: { status: 403, error: "중지된 연결입니다." } };
-    const recent = s.leads.find((l) => l.phone === phone && Date.now() - new Date(l.createdAt).getTime() < 10 * 60_000);
+    const recent = !isTestPhone(s, phone) && s.leads.find((l) => l.phone === phone && Date.now() - new Date(l.createdAt).getTime() < 10 * 60_000);
     if (recent) return { state: s, result: { status: 200, leadId: recent.id, assigned: recent.status === "assigned", duplicate: true } };
     const car = f("car_name", 100);
     const lead: Lead = {

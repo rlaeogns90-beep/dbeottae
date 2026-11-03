@@ -6,8 +6,9 @@ import { MyPasswordCard } from "@/components/password";
 import { useAdmin } from "@/components/shells";
 import { Button, Card, CardHeader, ConfirmButton, Field, Input, Notice, PageHeader, Toggle } from "@/components/ui";
 import { industryOptions } from "@/lib/content";
-import { minChargeOf, priceOf } from "@/lib/engine";
-import { won } from "@/lib/format";
+import { MAX_TEST_PHONES } from "@/lib/actions";
+import { DEFAULT_TEST_PHONES, minChargeOf, priceOf } from "@/lib/engine";
+import { formatPhone, won } from "@/lib/format";
 import { useStore } from "@/lib/store";
 
 export default function SettingsPage() {
@@ -16,6 +17,10 @@ export default function SettingsPage() {
   const s = state.settings;
   const [bank, setBank] = useState(s.bankAccount);
   const [bankSaved, setBankSaved] = useState(false);
+  const [tests, setTests] = useState(s.testPhones ?? DEFAULT_TEST_PHONES);
+  const [testsSaved, setTestsSaved] = useState(false);
+  // 마지막으로 채운 칸 다음에 빈 칸 하나를 더 보여준다.
+  const testSlots = Math.min(MAX_TEST_PHONES, tests.findLastIndex((p) => p) + 2);
   // 운영 사이트(Vercel production)에서는 예시 데이터 초기화를 보여주지 않는다.
   const isProduction = process.env.NEXT_PUBLIC_VERCEL_ENV === "production";
 
@@ -44,6 +49,35 @@ export default function SettingsPage() {
             <Toggle on={s.weekendStop} onChange={(v) => updateSettings({ weekendStop: v })} />
           </Row>
         </div>
+      </Card>
+
+      <Card>
+        <CardHeader title="테스트 번호" desc="이 번호로 들어온 DB는 광고주에게 배정하지 않고 관리자 대기로 보냅니다. 10분 안에 다시 보내도 매번 새로 접수됩니다." />
+        <form
+          className="p-5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            updateSettings({ testPhones: tests });
+            setTestsSaved(true);
+            setTimeout(() => setTestsSaved(false), 1500);
+          }}
+        >
+          <div className="grid gap-2 sm:grid-cols-3">
+            {Array.from({ length: testSlots }, (_, i) => (
+              <Input
+                key={i}
+                aria-label={`테스트 번호 ${i + 1}`}
+                inputMode="numeric"
+                value={tests[i] ?? ""}
+                onChange={(e) => { const next = [...tests]; next[i] = formatPhone(e.target.value); setTests(next); }}
+                placeholder="010-0000-0000"
+              />
+            ))}
+          </div>
+          <div className="mt-3 flex justify-end">
+            <Button type="submit">{testsSaved ? "저장됨" : "번호 저장"}</Button>
+          </div>
+        </form>
       </Card>
 
       <Card>

@@ -128,6 +128,15 @@ export function assign(
   return next;
 }
 
+/** 관리자가 테스트 번호를 한 번도 저장하지 않았을 때 쓰는 번호 */
+export const DEFAULT_TEST_PHONES = ["010-5288-6405", "010-8975-6207"];
+
+/** DB 시험용 번호인지. 하이픈 유무와 상관없이 숫자로 비교한다. */
+export function isTestPhone(s: State, phone: string) {
+  const d = phone.replace(/\D/g, "");
+  return !!d && (s.settings.testPhones ?? DEFAULT_TEST_PHONES).some((p) => p.replace(/\D/g, "") === d);
+}
+
 /** 새로 접수된 DB를 규칙대로 배정하거나 관리자 대기로 보낸다. */
 export function routeLead(s: State, lead: Lead, now = new Date()): State {
   const withLead: State = { ...s, leads: [lead, ...s.leads] };
@@ -136,6 +145,7 @@ export function routeLead(s: State, lead: Lead, now = new Date()): State {
     leads: withLead.leads.map((l) => (l.id === lead.id ? { ...l, status: "waiting", waitReason: reason } : l)),
   });
 
+  if (isTestPhone(s, lead.phone)) return wait("테스트 번호");
   if (s.settings.paused) return wait("배정 일시정지");
   if (s.settings.weekendStop && isWeekend(now)) return wait("주말 접수");
 

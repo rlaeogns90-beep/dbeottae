@@ -1,6 +1,7 @@
 // 화면에서 하는 모든 변경 작업. 브라우저(미리 반영)와 서버(실제 저장)가 같은 함수를 쓰고,
 // 서버에서는 이 함수가 권한까지 확인한 결과만 저장한다.
 import { isIndustry } from "./content";
+import { formatPhone } from "./format";
 import { assign, checkAdvertiser, minChargeOf, priceOf, reopenAt, routeLead, uid } from "./engine";
 import type { Advertiser, Assignment, DefectReason, Lead, MemberStatus, Session, Settings, State, TaskKind } from "./types";
 
@@ -42,6 +43,8 @@ const MASTER_ACTIONS = new Set<Action["type"]>(["createAdmin", "deleteAdmin"]);
 export const MIN_PASSWORD = 4;
 /** 배정 건마다 남기는 상담 메모 기록 수 */
 export const MAX_MEMOS = 50;
+/** 관리자 대기로 보내는 DB 시험용 번호 수 */
+export const MAX_TEST_PHONES = 10;
 
 const CONSULT_VALUES = ["대기", "견적발송", "계약", "관리", "계약취소"];
 export const LOGIN_ID = /^[a-zA-Z0-9_]{4,20}$/;
@@ -53,6 +56,11 @@ function invalid(a: Action): string | null {
   switch (a.type) {
     case "setReceiving":
       return typeof a.on === "boolean" ? null : "잘못된 요청입니다.";
+    case "updateSettings": {
+      const t = a.patch.testPhones;
+      if (t === undefined) return null;
+      return Array.isArray(t) && t.length <= MAX_TEST_PHONES && t.every((p) => str(p, 20)) ? null : `테스트 번호는 ${MAX_TEST_PHONES}개까지 넣을 수 있습니다.`;
+    }
     case "requestDeposit":
       return money(a.amount) && a.amount > 0 && str(a.depositor, 30) && a.depositor.trim() ? null : "입금 금액과 입금자명을 확인해 주세요.";
     case "updateAssignment":
@@ -291,6 +299,8 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
         };
       }
       // 연결의 업종은 정해진 업종 이름만 받는다 (그 밖의 값은 비워서 신차 장기렌트로 본다).
+      // 테스트 번호는 10자리 이상만 남기고 하이픈을 맞춰 저장한다.
+      if (patch.testPhones) patch.testPhones = [...new Set(patch.testPhones.filter((p) => p.replace(/\D/g, "").length >= 10).map(formatPhone))];
       if (Array.isArray(patch.connections))
         patch.connections = patch.connections.map((c) => ({ ...c, industry: isIndustry(c.industry) ? c.industry : undefined }));
       return ok({ ...s, settings: { ...s.settings, ...patch } });
