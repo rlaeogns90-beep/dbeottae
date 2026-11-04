@@ -208,6 +208,8 @@ export interface Settings {
     taskPhones?: Partial<Record<TaskKind, string[]>>;
     apiKey?: string;
     keyReady?: boolean;
+    /** 새 솔라피 계정(충전 완료·잔여 수량·소진·관리자 확인 안내) Key·Secret이 서버에 있는지. 읽기 전용 */
+    keyReady2?: boolean;
   };
   connections: Connection[];
 }

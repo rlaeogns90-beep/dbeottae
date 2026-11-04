@@ -50,6 +50,6 @@ export const POST = guarded("가입 신청", async (req) => {
   if (error && bizFile) await sql`delete from biz_files where advertiser_id = ${id}`;
   if (error) return bad(error);
   const { data } = await loadState();
-  await notifyTask(data, "member", `${input.name}${input.company ? `(${input.company})` : ""} 광고주 가입 신청 · ${input.industry}`).catch(() => {});
+  await notifyTask(data, "member", input.company ? `${input.name}(${input.company})` : input.name).catch(() => {});
   return Response.json({ ok: true });
 });

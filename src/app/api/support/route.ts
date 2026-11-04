@@ -65,7 +65,7 @@ export const POST = guarded("챗봇 문의", async (req) => {
       await sql`insert into support_posts (kind, advertiser_id, title, body) values ('inquiry', ${me.who.id}, ${title}, ${body})`;
       const name = (findUser(me.data, me.who) as { name: string }).name;
       await alert("info", "챗봇 문의", `${name} 광고주의 새 챗봇 문의가 등록됐습니다: ${title.slice(0, 40)}`);
-      await notifyTask(me.data, "support", `${name} 광고주 문의: ${title}`).catch(() => {});
+      await notifyTask(me.data, "support", name).catch(() => {});
     } else return Response.json({ error: "잘못된 요청입니다." }, { status: 400 });
     return Response.json({ ok: true });
   }

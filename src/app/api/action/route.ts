@@ -50,9 +50,8 @@ export const POST = guarded("작업 저장", async (req) => {
   if (action.type === "requestDeposit" || action.type === "reportDefect" || (action.type === "handleDeposit" && action.ok)) {
     const { data: fresh } = await loadState();
     const name = (findUser(fresh, who) as { name: string } | undefined)?.name ?? "";
-    if (action.type === "requestDeposit")
-      await notifyTask(fresh, "deposit", `${name} 광고주 충전 신청 ${action.amount.toLocaleString()}원 (입금자 ${action.depositor})`).catch(() => {});
-    else if (action.type === "reportDefect") await notifyTask(fresh, "defect", `${name} 광고주 결번 불량 신청`).catch(() => {});
+    if (action.type === "requestDeposit") await notifyTask(fresh, "deposit", name).catch(() => {});
+    else if (action.type === "reportDefect") await notifyTask(fresh, "defect", name).catch(() => {});
     else await notifyCharged(fresh, action.id).catch(() => {});
   }
   if (who.role === "admin") {

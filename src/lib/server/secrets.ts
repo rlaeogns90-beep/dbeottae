@@ -34,7 +34,11 @@ function forRole(s: State, who: Session | null): State {
 
   if (who.role === "admin") {
     // API Key·Secret은 화면으로 보내지 않고, 서버에 등록됐는지만 알려준다.
-    const solapi = { ...s.settings.solapi, apiKey: "", keyReady: !!(process.env.SOLAPI_API_KEY && process.env.SOLAPI_API_SECRET) };
+    const solapi = {
+      ...s.settings.solapi, apiKey: "",
+      keyReady: !!(process.env.SOLAPI_API_KEY && process.env.SOLAPI_API_SECRET),
+      keyReady2: !!(process.env.SOLAPI2_API_KEY && process.env.SOLAPI2_API_SECRET),
+    };
     // 상담 메모 기록은 관리자 화면에서 쓰지 않고 크기만 커지므로 보내지 않는다 (최근 메모 memo는 보냄).
     const assignments = s.assignments.map((a) => (a.memos ? { ...a, memos: undefined } : a));
     return { ...s, assignments, advertisers: noPw(s.advertisers), partners: noPw(s.partners), admins: noPw(s.admins), settings: { ...s.settings, solapi } };

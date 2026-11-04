@@ -11,6 +11,13 @@ import { Badge, Button, Card, CardHeader, cx, Field, Input, Toggle } from "./ui"
 
 const TASK_NAME: Record<TaskKind, string> = { member: "가입 승인", deposit: "입금 확인", defect: "불량 처리", support: "챗봇 문의" };
 
+const TEMPLATE2_ROWS: [string, string][] = [
+  ["충전 완료 안내 (광고주)", "관리자가 입금을 확인하면"],
+  ["잔여 수량 안내 (광고주)", "DB를 받고 남은 건수가 1건이 되면"],
+  ["소진 안내 (광고주)", "예치금을 다 써서 수신이 꺼지면"],
+  ["관리자 확인 안내 (관리자)", "가입·입금·불량·챗봇 문의가 들어오면 아래 번호로"],
+];
+
 export function SolapiCard() {
   const { state, updateSettings, api } = useStore();
   const [sol, setSol] = useState(state.settings.solapi);
@@ -20,6 +27,7 @@ export function SolapiCard() {
   const [busy, setBusy] = useState<string | null>(null);
   const set = (patch: Partial<typeof sol>) => setSol({ ...sol, ...patch });
   const keyReady = !!state.settings.solapi.keyReady;
+  const keyReady2 = !!state.settings.solapi.keyReady2;
 
   const checks: [string, boolean][] = [
     ["API Key·Secret (서버)", keyReady],
@@ -27,10 +35,7 @@ export function SolapiCard() {
     ["발신번호", !!sol.sender],
     ["문의 접수 템플릿", !!sol.templateInquiry],
     ["통계 알림 템플릿", !!sol.templateStats],
-    ["관리자 확인 안내 템플릿", !!sol.templateTask],
-    ["충전 완료 템플릿", !!sol.templateCharged],
-    ["잔여 수량 안내 템플릿", !!sol.templateRemain],
-    ["소진 안내 템플릿", !!sol.templateEmpty],
+    ["새 계정 API Key·Secret (서버)", keyReady2],
   ];
   const ready = checks.slice(0, 4).every(([, ok]) => ok);
 
@@ -78,10 +83,22 @@ export function SolapiCard() {
         <Field label="문의 접수 템플릿 ID (광고주용)"><Input value={sol.templateInquiry ?? ""} onChange={(e) => set({ templateInquiry: e.target.value.trim() })} placeholder="KA01TP..." /></Field>
         <Field label="통계 알림 템플릿 ID (관리자용)"><Input value={sol.templateStats ?? ""} onChange={(e) => set({ templateStats: e.target.value.trim() })} placeholder="KA01TP..." /></Field>
         <Field label="통계 알림 받을 관리자 번호"><Input inputMode="numeric" value={sol.statsPhone ?? ""} onChange={(e) => set({ statsPhone: formatPhone(e.target.value) })} placeholder="010-0000-0000" /></Field>
-        <Field label="관리자 확인 안내 템플릿 ID (관리자용)" hint="가입·입금·불량·챗봇 문의가 들어오면"><Input value={sol.templateTask ?? ""} onChange={(e) => set({ templateTask: e.target.value.trim() })} placeholder="KA01TP..." /></Field>
-        <Field label="충전 완료 템플릿 ID (광고주용)" hint="입금을 확인하면 광고주에게"><Input value={sol.templateCharged ?? ""} onChange={(e) => set({ templateCharged: e.target.value.trim() })} placeholder="KA01TP..." /></Field>
-        <Field label="잔여 수량 안내 템플릿 ID (광고주용)" hint="구매 가능한 DB가 1건 남으면"><Input value={sol.templateRemain ?? ""} onChange={(e) => set({ templateRemain: e.target.value.trim() })} placeholder="KA01TP..." /></Field>
-        <Field label="소진 안내 템플릿 ID (광고주용)" hint="예치금을 다 써서 수신이 꺼지면"><Input value={sol.templateEmpty ?? ""} onChange={(e) => set({ templateEmpty: e.target.value.trim() })} placeholder="KA01TP..." /></Field>
+      </div>
+
+      <div className="border-t border-line px-5 py-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-sm font-semibold">새 솔라피 계정 템플릿</p>
+          <Badge tone={keyReady2 ? "green" : "orange"}>{keyReady2 ? "새 계정 키 등록됨" : "새 계정 키 없음 (SOLAPI2_API_KEY·SOLAPI2_API_SECRET)"}</Badge>
+        </div>
+        <p className="mt-0.5 text-[13px] text-mute">검수가 끝난 템플릿이라 고정돼 있습니다. 위의 &lsquo;알림톡 발송&rsquo;이 켜져 있고 새 계정 키가 있어야 발송됩니다.</p>
+        <ul className="mt-3 divide-y divide-line rounded-lg border border-line text-[13px]">
+          {TEMPLATE2_ROWS.map(([name, when]) => (
+            <li key={name} className="flex flex-wrap justify-between gap-x-4 gap-y-0.5 px-4 py-2.5">
+              <span className="font-semibold">{name}</span>
+              <span className="text-sub">{when}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
       <div className="border-t border-line px-5 py-4">
@@ -124,13 +141,13 @@ export function SolapiCard() {
           <Input className="w-44" inputMode="numeric" value={testTo} onChange={(e) => setTestTo(formatPhone(e.target.value))} placeholder="받을 번호" />
           <Button variant="secondary" size="sm" disabled={!ready || !!busy} onClick={() => test("inquiry")}>{busy === "inquiry" ? "보내는 중…" : "문의 접수 보내기"}</Button>
           <Button variant="secondary" size="sm" disabled={!ready || !sol.templateStats || !!busy} onClick={() => test("stats")}>{busy === "stats" ? "보내는 중…" : "통계 알림 보내기"}</Button>
-          <Button variant="secondary" size="sm" disabled={!ready || !sol.templateTask || !!busy} onClick={() => test("task")}>{busy === "task" ? "보내는 중…" : "관리자 확인 안내 보내기"}</Button>
-          <Button variant="secondary" size="sm" disabled={!ready || !sol.templateCharged || !!busy} onClick={() => test("charged")}>{busy === "charged" ? "보내는 중…" : "충전 완료 보내기"}</Button>
-          <Button variant="secondary" size="sm" disabled={!ready || !sol.templateRemain || !!busy} onClick={() => test("remain")}>{busy === "remain" ? "보내는 중…" : "잔여 수량 안내 보내기"}</Button>
-          <Button variant="secondary" size="sm" disabled={!ready || !sol.templateEmpty || !!busy} onClick={() => test("empty")}>{busy === "empty" ? "보내는 중…" : "소진 안내 보내기"}</Button>
+          <Button variant="secondary" size="sm" disabled={!keyReady2 || !!busy} onClick={() => test("task")}>{busy === "task" ? "보내는 중…" : "관리자 확인 안내 보내기"}</Button>
+          <Button variant="secondary" size="sm" disabled={!keyReady2 || !!busy} onClick={() => test("charged")}>{busy === "charged" ? "보내는 중…" : "충전 완료 보내기"}</Button>
+          <Button variant="secondary" size="sm" disabled={!keyReady2 || !!busy} onClick={() => test("remain")}>{busy === "remain" ? "보내는 중…" : "잔여 수량 안내 보내기"}</Button>
+          <Button variant="secondary" size="sm" disabled={!keyReady2 || !!busy} onClick={() => test("empty")}>{busy === "empty" ? "보내는 중…" : "소진 안내 보내기"}</Button>
         </div>
         {testMsg && <p className={cx("mt-2 text-[13px]", testMsg.ok ? "text-brand" : "text-bad")}>{testMsg.text}</p>}
-        <p className="mt-2"><Badge tone={keyReady ? "green" : "orange"}>{keyReady ? "서버에 솔라피 키 등록됨" : "이 환경에는 솔라피 키가 없습니다 (운영 사이트에서만 발송됩니다)"}</Badge></p>
+        <p className="mt-2"><Badge tone={keyReady ? "green" : "orange"}>{keyReady ? "서버에 기존 계정 솔라피 키 등록됨" : "이 환경에는 기존 계정 솔라피 키가 없습니다 (운영 사이트에서만 발송됩니다)"}</Badge></p>
       </div>
     </Card>
   );
