@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { BizFileButton, BizFileUpload } from "@/components/biz-file";
@@ -109,14 +109,18 @@ export default function AdminAdvertisers() {
   const { state, now, updateAdvertiser } = useStore();
   const [q, setQ] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
+  // 수신 정렬: 누를 때마다 ON 먼저 → OFF 먼저 → 원래 순서. 같은 수신 상태끼리는 원래 순서를 지킨다.
+  const [recvSort, setRecvSort] = useState<"on" | "off" | null>(null);
   const list = state.advertisers
     .filter((a) => a.status === "approved" || a.status === "suspended")
-    .filter((a) => !q || [a.name, a.company, a.industry, a.phone, a.referrer, a.loginId].some((v) => v?.includes(q)));
+    .filter((a) => !q || [a.name, a.company, a.industry, a.phone, a.referrer, a.loginId].some((v) => v?.includes(q)))
+    .sort((x, y) => (recvSort ? (Number(y.receiving) - Number(x.receiving)) * (recvSort === "on" ? 1 : -1) : 0));
+  const onCount = list.filter((a) => a.receiving).length;
   const editingAdv = state.advertisers.find((a) => a.id === editing);
 
   return (
     <div>
-      <PageHeader title="광고주" desc={`승인된 광고주 ${list.length}명`} />
+      <PageHeader title="광고주" desc={`승인된 광고주 ${list.length}명 · 수신 ON ${onCount}명`} />
       <div className="relative mb-3 max-w-sm">
         <Search size={16} className="absolute top-1/2 left-3 -translate-y-1/2 text-mute" />
         <Input className="pl-9" placeholder="이름, 회사, 연락처, 추천인 검색" value={q} onChange={(e) => setQ(e.target.value)} />
@@ -133,7 +137,17 @@ export default function AdminAdvertisers() {
                 <th className={th}>추천인</th>
                 <th className={th}>사업자등록증</th>
                 <th className={th}>순번</th>
-                <th className={th}>수신</th>
+                <th className={th} aria-sort={recvSort ? (recvSort === "on" ? "descending" : "ascending") : "none"}>
+                  <button
+                    type="button"
+                    className={`inline-flex items-center gap-1 hover:text-ink ${recvSort ? "text-brand" : ""}`}
+                    onClick={() => setRecvSort(recvSort === null ? "on" : recvSort === "on" ? "off" : null)}
+                    title="누를 때마다 ON 먼저 → OFF 먼저 → 원래 순서"
+                  >
+                    수신{recvSort === "on" ? " · ON 먼저" : recvSort === "off" ? " · OFF 먼저" : ""}
+                    {recvSort === "on" ? <ArrowDown size={13} /> : recvSort === "off" ? <ArrowUp size={13} /> : <ArrowUpDown size={13} />}
+                  </button>
+                </th>
                 <th className={`${th} text-right`}>오늘</th>
                 <th className={`${th} text-right`}>예치금</th>
                 <th className={th} />
