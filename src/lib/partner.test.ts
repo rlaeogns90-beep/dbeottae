@@ -18,10 +18,10 @@ test("영업자 인센티브: 신차 건별 수익 9,000원의 40%, 오토바이
       { ...base.advertisers[0], id: "x2", referrer: "P1", industry: "오토바이 매매" },
     ],
     assignments: [
-      { id: "a1", leadId: "l", advertiserId: "x1", assignedAt: at, method: "auto", amount: 44000, consult: "new", memo: "" },
-      { id: "a2", leadId: "l", advertiserId: "x1", assignedAt: at, method: "auto", amount: 44000, consult: "new", memo: "" },
-      { id: "a3", leadId: "l", advertiserId: "x1", assignedAt: at, method: "auto", amount: 44000, consult: "new", memo: "" },
-      { id: "a4", leadId: "l", advertiserId: "x2", assignedAt: at, method: "auto", amount: 16500, consult: "new", memo: "" },
+      { id: "a1", leadId: "l", advertiserId: "x1", assignedAt: at, method: "auto", amount: 44000, consult: "대기", memo: "" },
+      { id: "a2", leadId: "l", advertiserId: "x1", assignedAt: at, method: "auto", amount: 44000, consult: "대기", memo: "" },
+      { id: "a3", leadId: "l", advertiserId: "x1", assignedAt: at, method: "auto", amount: 44000, consult: "대기", memo: "" },
+      { id: "a4", leadId: "l", advertiserId: "x2", assignedAt: at, method: "auto", amount: 16500, consult: "대기", memo: "" },
     ],
     defects: [{ ...base.defects[0], assignmentId: "a3", status: "approved" }],
   };

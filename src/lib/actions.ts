@@ -205,11 +205,17 @@ export function runAction(s: State, who: Session, a: Action, now = new Date()): 
       const d = s.deposits.find((x) => x.id === a.id);
       if (!d) return { error: "입금 요청을 찾을 수 없습니다." };
       if (d.status !== "pending") return { error: "이미 처리한 입금 요청입니다." };
+      const wallet = a.ok ? [{ id: uid("tx"), advertiserId: d.advertiserId, type: "charge" as const, amount: d.amount, at, note: "예치금 충전", depositId: d.id }, ...s.wallet] : s.wallet;
+      const adv = s.advertisers.find((x) => x.id === d.advertiserId);
+      const bal = wallet.filter((t) => t.advertiserId === d.advertiserId).reduce((n, t) => n + t.amount, 0);
+      // 충전이 승인되면 꺼져 있던 수신을 바로 켠다. 관리자가 끈 광고주는 그대로 둔다.
+      const turnOn = a.ok && adv?.status === "approved" && !adv.receiving && adv.offBy !== "admin" && bal >= priceOf(s, adv.industry);
       return ok({
         ...s,
         // 입금이 확인되면 증빙(세금계산서·현금영수증)은 '대기'로 시작한다.
         deposits: s.deposits.map((x) => (x.id === a.id ? { ...x, status: a.ok ? "approved" : "rejected", handledAt: at, receipt: a.ok ? { status: "pending" } : undefined } : x)),
-        wallet: a.ok ? [{ id: uid("tx"), advertiserId: d.advertiserId, type: "charge", amount: d.amount, at, note: "예치금 충전", depositId: d.id }, ...s.wallet] : s.wallet,
+        wallet,
+        advertisers: turnOn ? s.advertisers.map((x) => (x.id === d.advertiserId ? { ...x, receiving: true, offAt: undefined, offBy: undefined } : x)) : s.advertisers,
       });
     }
     case "setReceiptStatus": {

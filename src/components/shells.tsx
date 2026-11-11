@@ -12,7 +12,8 @@ import { won } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import type { Admin, Advertiser, Partner, Session } from "@/lib/types";
 import { Chatbot } from "./chatbot";
-import { cx, Logo } from "./ui";
+import { Button, cx, Logo, Modal } from "./ui";
+import { kstDate } from "@/lib/lead-filter";
 
 function useGuard(role: Session["role"]) {
   const { session, state, ready } = useStore();
@@ -128,7 +129,34 @@ export function AdvertiserShell({ children }: { children: React.ReactNode }) {
       <main className="mx-auto max-w-5xl px-4 py-6">{children}</main>
       <BottomNav items={items} root="/app" />
       <Chatbot mode="advertiser" />
+      <AutoOnNotice />
     </div>
+  );
+}
+
+// shortcut: 기간 한정 공지를 코드에 고정, 공지가 잦아지면 관리자 설정으로 옮긴다.
+const NOTICE = { key: "notice-auto-on-2611", from: "2026-11-11", to: "2026-11-30" };
+
+/** 광고주 화면 공지 팝업 (기간 안, 로그인한 탭에서 한 번). */
+function AutoOnNotice() {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const today = kstDate(new Date().toISOString());
+    let seen = false;
+    try { seen = sessionStorage.getItem(NOTICE.key) === "1"; } catch {}
+    if (today >= NOTICE.from && today <= NOTICE.to && !seen) setOpen(true);
+  }, []);
+  const close = () => {
+    try { sessionStorage.setItem(NOTICE.key, "1"); } catch {}
+    setOpen(false);
+  };
+  return (
+    <Modal open={open} title="충전하면 수신이 자동으로 켜져요" onClose={close} footer={<Button className="flex-1" onClick={close}>확인</Button>}>
+      <div className="space-y-2 text-[14px] leading-relaxed text-sub">
+        <p>이제 예치금 충전이 <b className="text-ink">입금 확인(승인)</b>되면 꺼져 있던 DB 수신이 <b className="text-brand">자동으로 ON</b>으로 바뀝니다.</p>
+        <p>예치금이 소진되어 수신이 꺼졌더라도 충전만 하시면 따로 켜지 않으셔도 바로 DB를 받으실 수 있습니다.</p>
+      </div>
+    </Modal>
   );
 }
 
