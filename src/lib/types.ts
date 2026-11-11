@@ -171,8 +171,6 @@ export interface Settings {
   paused: boolean;
   /** DB 시험용 번호. 이 번호로 들어온 DB는 광고주에게 배정하지 않고 관리자 대기로 보낸다. 저장한 적 없으면(undefined) 기본 번호를 쓴다. */
   testPhones?: string[];
-  /** 영업자 수익: 추천 광고주의 DB 1건당 */
-  incentivePerDb: number;
   bankAccount: { bank: string; number: string; holder: string };
   /** 마지막으로 자동 배정한 그룹. 다음 DB는 그다음 번호 그룹부터 찾는다. */
   lastGroupId?: string;

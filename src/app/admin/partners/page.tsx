@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Badge, Button, Card, Empty, PageHeader, Select, Table, td, th } from "@/components/ui";
 import { won } from "@/lib/format";
-import { monthKey, monthLabel, partnerStats } from "@/lib/partner";
+import { DEFAULT_INDUSTRY } from "@/lib/content";
+import { DB_MARGIN, INCENTIVE_RATE, incentiveOf, monthKey, monthLabel, partnerStats } from "@/lib/partner";
 import { useStore } from "@/lib/store";
 
 export default function AdminPartners() {
@@ -16,7 +17,7 @@ export default function AdminPartners() {
     <div>
       <PageHeader
         title="영업자 · 인센티브"
-        desc={`추천 광고주의 DB 1건당 ${won(state.settings.incentivePerDb)}이 영업자 수익으로 쌓입니다 (결번 환급 건 제외)`}
+        desc={`건별 수익(신차 ${won(DB_MARGIN[DEFAULT_INDUSTRY])})의 ${INCENTIVE_RATE * 100}%가 영업자 인센티브로 쌓입니다 · 신차 건당 ${won(incentiveOf(DEFAULT_INDUSTRY))}, 오토바이 0원, 결번 환급 건 제외`}
         action={
           <div className="w-40">
             <Select className="h-10" value={month} onChange={(e) => setMonth(e.target.value)}>
@@ -38,7 +39,9 @@ export default function AdminPartners() {
                 <th className={`${th} text-right`}>{monthLabel(month)} 건수</th>
                 <th className={`${th} text-right`}>{monthLabel(month)} 지급액</th>
                 <th className={`${th} text-right`}>누적 결제</th>
-                <th className={`${th} text-right`}>누적 수익</th>
+                <th className={`${th} text-right`}>누적 건별 수익</th>
+                <th className={`${th} text-right`}>인센티브율</th>
+                <th className={`${th} text-right`}>누적 인센티브</th>
                 <th className={th} />
               </tr>
             </thead>
@@ -56,6 +59,8 @@ export default function AdminPartners() {
                     <td className={`${td} tabular text-right`}>{st.selected.count}건</td>
                     <td className={`${td} tabular text-right font-bold text-brand`}>{won(st.selected.income)}</td>
                     <td className={`${td} tabular text-right`}>{won(st.total.amount)}</td>
+                    <td className={`${td} tabular text-right`}>{won(st.total.margin)}</td>
+                    <td className={`${td} tabular text-right`}>{INCENTIVE_RATE * 100}%</td>
                     <td className={`${td} tabular text-right font-semibold`}>{won(st.total.income)}</td>
                     <td className={`${td} text-right`}>
                       {p.status === "suspended" ? (

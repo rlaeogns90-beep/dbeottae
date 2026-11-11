@@ -152,7 +152,6 @@ export function seed(now = Date.now()): State {
       offLockHours: 24,
       weekendStop: true,
       paused: false,
-      incentivePerDb: 11000,
       bankAccount: { bank: "신한은행", number: "110-485-219078", holder: "마케팅을다루다" },
       lastGroupId: "g1",
       solapi: {

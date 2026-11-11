@@ -97,7 +97,6 @@ const EMPTY: State = {
     offLockHours: 24,
     weekendStop: true,
     paused: false,
-    incentivePerDb: 11000,
     bankAccount: { bank: "", number: "", holder: "" },
     solapi: { channel: "", pfId: "", sender: "", templateInquiry: "", templateStats: "", statsPhone: "", enabled: false, statsEnabled: false },
     connections: [],

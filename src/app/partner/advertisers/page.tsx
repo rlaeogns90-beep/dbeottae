@@ -3,7 +3,7 @@
 import { usePartner } from "@/components/shells";
 import { Badge, Card, Empty, PageHeader, Table, td, th } from "@/components/ui";
 import { fullDate, won } from "@/lib/format";
-import { partnerStats } from "@/lib/partner";
+import { incentiveOf, partnerStats } from "@/lib/partner";
 import { useStore } from "@/lib/store";
 
 export default function PartnerAdvertisers() {
@@ -46,7 +46,7 @@ export default function PartnerAdvertisers() {
                     <td className={td}>{a.receiving ? <Badge tone="blue">ON</Badge> : <Badge>OFF</Badge>}</td>
                     <td className={`${td} tabular text-right`}>{pays.length}건</td>
                     <td className={`${td} tabular text-right`}>{won(pays.reduce((n, x) => n + x.amount, 0))}</td>
-                    <td className={`${td} tabular text-right font-semibold text-brand`}>{won(pays.length * state.settings.incentivePerDb)}</td>
+                    <td className={`${td} tabular text-right font-semibold text-brand`}>{won(pays.length * incentiveOf(a.industry))}</td>
                   </tr>
                 );
               })}

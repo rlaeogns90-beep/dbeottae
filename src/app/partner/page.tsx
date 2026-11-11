@@ -6,7 +6,8 @@ import { useState } from "react";
 import { usePartner } from "@/components/shells";
 import { Button, Card, CardHeader, cx, Empty, PageHeader, Select, Stat, Table, td, th } from "@/components/ui";
 import { dateTime, won } from "@/lib/format";
-import { monthKey, monthLabel, partnerStats } from "@/lib/partner";
+import { DEFAULT_INDUSTRY } from "@/lib/content";
+import { DB_MARGIN, INCENTIVE_RATE, incentiveOf, monthKey, monthLabel, partnerStats } from "@/lib/partner";
 import { useStore } from "@/lib/store";
 
 export default function PartnerHome() {
@@ -16,7 +17,7 @@ export default function PartnerHome() {
   const st = partnerStats(state, p.code, month);
   const [copied, setCopied] = useState(false);
   const link = typeof window !== "undefined" ? `${window.location.origin}/signup?ref=${p.code}` : "";
-  const perDb = state.settings.incentivePerDb;
+  const rate = `${INCENTIVE_RATE * 100}%`;
   const label = monthLabel(month);
   const isCurrent = month === monthKey(new Date());
 
@@ -24,7 +25,7 @@ export default function PartnerHome() {
     <div className="space-y-4">
       <PageHeader
         title={`${p.name}님 추천 실적`}
-        desc={`추천 광고주가 DB를 1건 받을 때마다 ${won(perDb)}씩 수익이 쌓입니다`}
+        desc={`추천 광고주가 DB를 1건 받을 때마다 건별 수익(신차 ${won(DB_MARGIN[DEFAULT_INDUSTRY])})의 ${rate}가 쌓입니다 · 신차 건당 ${won(incentiveOf(DEFAULT_INDUSTRY))}`}
         action={
           <div className="w-40">
             <Select className="h-10" value={month} onChange={(e) => setMonth(e.target.value)}>
@@ -55,12 +56,13 @@ export default function PartnerHome() {
         <p className="text-[13px] text-sub">{isCurrent ? "이번 달" : label} 내 수익</p>
         <p className="tabular mt-1 text-[32px] font-bold text-brand">{won(st.selected.income)}</p>
         <p className="tabular mt-1 text-[13px] text-mute">
-          결제 {st.selected.count}건 × {won(perDb)} · 누적 수익 {won(st.total.income)}
+          결제 {st.selected.count}건 · 건별 수익 {won(st.selected.margin)} × 인센티브율 {rate} · 누적 수익 {won(st.total.income)}
         </p>
       </Card>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         <Stat label="누적 추천 결제 금액" value={won(st.total.amount)} sub={`${st.total.count}건`} />
+        <Stat label="누적 건별 수익" value={won(st.total.margin)} sub={`인센티브율 ${rate} → ${won(st.total.income)}`} />
         <Stat label={`${isCurrent ? "이번 달" : label} 결제 금액`} value={won(st.selected.amount)} />
         <Stat label={`${isCurrent ? "이번 달" : label} 결제 건수`} value={`${st.selected.count}건`} />
         <Stat label="추천 광고주" value={`${st.approved}명`} sub={`승인 대기 ${st.pending}명 포함 시 ${st.approved + st.pending}명`} />
@@ -74,6 +76,8 @@ export default function PartnerHome() {
               <th className={th}>월</th>
               <th className={`${th} text-right`}>결제 건수</th>
               <th className={`${th} text-right`}>결제 금액</th>
+              <th className={`${th} text-right`}>건별 수익</th>
+              <th className={`${th} text-right`}>인센티브율</th>
               <th className={`${th} text-right`}>내 수익</th>
             </tr>
           </thead>
@@ -83,6 +87,8 @@ export default function PartnerHome() {
                 <td className={`${td} font-semibold`}>{monthLabel(m.month)}</td>
                 <td className={`${td} tabular text-right`}>{m.count}건</td>
                 <td className={`${td} tabular text-right`}>{won(m.amount)}</td>
+                <td className={`${td} tabular text-right`}>{won(m.margin)}</td>
+                <td className={`${td} tabular text-right`}>{rate}</td>
                 <td className={`${td} tabular text-right font-bold text-brand`}>{won(m.income)}</td>
               </tr>
             ))}
@@ -104,7 +110,7 @@ export default function PartnerHome() {
                     <p className="text-sm font-semibold">{adv.name}{adv.company ? ` · ${adv.company}` : ""}</p>
                     <p className="text-xs text-mute">{dateTime(a.assignedAt)} · DB 1건 {won(a.amount)}</p>
                   </div>
-                  <span className="tabular font-semibold text-brand">+{won(perDb)}</span>
+                  <span className="tabular font-semibold text-brand">+{won(incentiveOf(adv.industry))}</span>
                 </li>
               );
             })}

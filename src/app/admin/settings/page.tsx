@@ -5,7 +5,8 @@ import { BackupsCard } from "@/components/backups";
 import { MyPasswordCard } from "@/components/password";
 import { useAdmin } from "@/components/shells";
 import { Button, Card, CardHeader, ConfirmButton, Field, Input, Notice, PageHeader, Toggle } from "@/components/ui";
-import { industryOptions } from "@/lib/content";
+import { DEFAULT_INDUSTRY, industryOptions } from "@/lib/content";
+import { DB_MARGIN, INCENTIVE_RATE, incentiveOf } from "@/lib/partner";
 import { MAX_TEST_PHONES } from "@/lib/actions";
 import { DEFAULT_TEST_PHONES, minChargeOf, priceOf } from "@/lib/engine";
 import { formatPhone, won } from "@/lib/format";
@@ -92,7 +93,8 @@ export default function SettingsPage() {
           <Row title="하루 한도" desc="광고주 1명이 하루에 받는 최대 건수, 넘으면 관리자 대기"><Value>{s.dailyLimit}건</Value></Row>
           <Row title="OFF 후 재개 대기" desc="광고주가 직접 끈 뒤 다시 켤 수 있을 때까지"><Value>{s.offLockHours}시간</Value></Row>
           <Row title="결번 환급" desc="신청 기한 없이, 결번이 확인되면 DB 금액 전액을 예치금으로"><Value>100%</Value></Row>
-          <Row title="영업자 수익" desc="추천 광고주의 DB 1건당, 결번 환급 건 제외"><Value>{won(s.incentivePerDb)}</Value></Row>
+          <Row title="건별 수익 · 신차 장기렌트" desc="DB 단가 − 실행사 원가 (VAT 포함), 오토바이는 원가 확정 전이라 0원"><Value>{won(DB_MARGIN[DEFAULT_INDUSTRY])}</Value></Row>
+          <Row title="영업자 인센티브율" desc={`추천 광고주의 건별 수익의 ${INCENTIVE_RATE * 100}%, 결번 환급 건 제외 · 신차 건당 ${won(incentiveOf(DEFAULT_INDUSTRY))}`}><Value>{INCENTIVE_RATE * 100}%</Value></Row>
                   </div>
       </Card>
 
