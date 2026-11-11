@@ -18,7 +18,9 @@ export default function WalletPage() {
   const minCharge = minChargeOf(state, adv.industry);
   const presets = [minCharge, minCharge * 2, minCharge * 3];
   const [amount, setAmount] = useState(minCharge);
-  const [depositor, setDepositor] = useState(adv.name);
+  // 세금계산서 광고주는 사업자명(상호)으로 입금해야 발행할 수 있어 입금자명 기본값을 사업자명으로 둔다.
+  const taxName = adv.receiptType === "tax" ? adv.company?.trim() || "" : "";
+  const [depositor, setDepositor] = useState(taxName || adv.name);
   const [agree, setAgree] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [confirming, setConfirming] = useState(false);
@@ -80,6 +82,11 @@ export default function WalletPage() {
                 />
               </Field>
               <Field label="입금자명"><Input value={depositor} onChange={(e) => setDepositor(e.target.value)} /></Field>
+              {adv.receiptType === "tax" && (
+                <Notice tone="orange">
+                  세금계산서 발행을 위해 반드시 <b>사업자명{taxName ? `(${taxName})` : ""} 그대로</b> 입금해 주세요. 개인 이름 등 다른 이름으로 입금하면 세금계산서 발행이 어렵습니다.
+                </Notice>
+              )}
               <div className="rounded-lg bg-page px-4 py-3 text-sm">
                 <p className="text-[13px] text-sub">입금 계좌</p>
                 <p className="tabular mt-0.5 font-semibold">{state.settings.bankAccount.bank} {state.settings.bankAccount.number} · {state.settings.bankAccount.holder}</p>
@@ -150,6 +157,11 @@ export default function WalletPage() {
         }
       >
         <p className="text-sm leading-relaxed text-sub">아래 계좌로 입금을 마친 뒤에 신청해 주세요. 입금이 확인되지 않으면 예치금에 반영되지 않습니다.</p>
+        {adv.receiptType === "tax" && (
+          <p className="mt-3 rounded-lg bg-warn-soft px-4 py-3 text-[13px] font-semibold leading-relaxed text-warn">
+            세금계산서는 사업자명{taxName ? `(${taxName})` : ""} 그대로 입금하신 경우에만 발행됩니다. 입금자명이 사업자명과 같은지 확인해 주세요.
+          </p>
+        )}
         <dl className="mt-4 space-y-2 rounded-lg bg-page px-4 py-3 text-sm">
           <div className="flex justify-between gap-3"><dt className="text-sub">입금 금액</dt><dd className="tabular font-bold">{won(amount)}</dd></div>
           <div className="flex justify-between gap-3"><dt className="text-sub">입금자명</dt><dd className="font-semibold">{depositor}</dd></div>
